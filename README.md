@@ -1,5 +1,7 @@
 # CocoDet
 
+
+# Propose
 - A full production grade ML project to detect coconut tree
 
 ## Output:
@@ -41,4 +43,8 @@
 
 ## Timeline
 - To be completed.
+
+
+
+
 
