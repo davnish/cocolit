@@ -1,8 +1,8 @@
-path: ../CocoDet/data/test_dataset # dataset root dir
-train: train/images # train images (relative to 'path') 4 images
-val: val/images # val images (relative to 'path') 4 images
-test: test/images
+bbox: list, 
+raster_path: str, 
+raster_patch_path: str,
+vector_path: str,
+vector_patch_path: str,
+txt_patch_path: str,
 
 
-names:
-    0: coconut_tree
