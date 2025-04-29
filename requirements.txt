@@ -1,0 +1,5 @@
+dvc
+ultralytics
+streamlit
+streamlit-folium
+rasvec

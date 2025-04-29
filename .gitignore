@@ -184,3 +184,6 @@ models/
 .DS_Store
 
 /data
+
+#additional environments
+/env2

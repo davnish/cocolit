@@ -46,5 +46,14 @@
 
 
 
+## Procedure
+
+### project
+- I have compeleted building a `prepare_data` pipeline which takes the input of the bbox and some other imput for paths and create the dataset for the model for training
+
+### Streamlit
+- I am using folium
+    - the procdure for the streamlit is, I going to select a bounding box from the map, and then input this bounding box to the model which will detect coconute and the given area.
+
 
 
