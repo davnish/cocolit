@@ -1,7 +1,13 @@
 from dataclasses import dataclass, field
 import tempfile
+import shutil
 from pathlib import Path
+from geopandas import GeoDataFrame
 
+@dataclass(frozen = True)
+class bbox:
+    data : dict
+    pred : GeoDataFrame
 
 @dataclass(frozen=True)
 class GetPath:
@@ -15,10 +21,10 @@ class GetPath:
         object.__setattr__(self, 'dir', tmp_dir)
         object.__setattr__(self, 'image_path', self.dir / f"{self.temp_name}.tif")
         object.__setattr__(self, 'txt_path', self.dir / f"predict/labels/{self.temp_name}.txt")
+    
+    def rm(self):
+        shutil.rmtree(self.dir)
 
-@dataclass
-class bbox:
-    pass
     
 
 

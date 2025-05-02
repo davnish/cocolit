@@ -3,6 +3,7 @@ import streamlit as st
 from folium.plugins import Draw
 from streamlit_folium import st_folium
 from pipelines.inference import InferencePipeline
+from src.datacls import bbox
 from pathlib import Path
 import torch
 import geopandas as gpd
@@ -14,8 +15,11 @@ st.set_page_config(layout="wide")
 # os.environ["STREAMLIT_WATCHER_TYPE"] = "none"
 torch.classes.__path__ = []
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+filehandler = logging.FileHandler('log/streamlit.log')
+filehandler.setLevel(logging.INFO)
+
+logger.addHandler(filehandler)
 
 
 
@@ -71,41 +75,22 @@ layer_control = folium.LayerControl()
 
 # @st.fragment(run_every=0.5)
 # def update_map(pt):
-if 'bbox' in st.session_state:
+if 'bboxes' in st.session_state and len(st.session_state['bboxes']) > 0:
     try:
         # need to fix the bug of calling the inference every time the map changes. for e.g if zoom level changes.
 
-        data = st.session_state['bbox']
-        if 'prev' in st.session_state:
 
-            if st.session_state['prev'] != data:
-                gdf = inference.run(data)
-                st.session_state['prev'] = data
-                st.session_state['prev_gdf'] = gdf
-            else: 
-                gdf = st.session_state['prev_gdf']
         
-        else:
-                gdf = inference.run(data)
-                st.session_state['prev'] = data
-                st.session_state['prev_gdf'] = gdf
+        # logger.info(f"Got the shp {gdf}")
 
-
-        if gdf is not None:
-            logger.info(f"Got the shp {gdf}")
-
-
-            trees = folium.GeoJson(gdf, name='CocoTrees',
+        for i in st.session_state['bboxes']:
+            trees = folium.GeoJson(i.pred, name='CocoTrees',
                                 marker=folium.Circle(radius=4, fill_color="orange", fill_opacity=0.1, color="orange", weight=1),
                                 highlight_function=lambda x: {"fillOpacity": 0.8},
                                 )
             pt.add_child(trees)
             
-            # st.rerun()
-            
-            # bounds = gdf.total_bounds  # [minx, miny, maxx, maxy]
-            # m.fit_bounds([[bounds[1], bounds[0]], [bounds[3], bounds[2]]]) 
-            # ZOOM = 18
+
 
     except Exception as e:
             logger.error(f"Error {e}") 
@@ -124,22 +109,39 @@ logging.info(output)
 # These lines are run after st_folium to get the ouput dict which consist the info of the bbox
 
 if output['all_drawings'] is not None and len(output['all_drawings'])>0:
-    st.session_state['bbox'] = output['all_drawings'][-1]
+    if len(st.session_state['bboxes'])>0:
+       
+       if output['all_drawings'][-1] != st.session_state['bboxes'][-1].data:
+        st.session_state['bboxes'].append(bbox(
+             output['all_drawings'][-1],
+             inference.run(output['all_drawings'][-1])
+        ))
 
-    if 'rerun' not in st.session_state:
-        st.session_state['rerun'] = 0
-        print('rerun')
+       else: 
+           pass
+    else:
+
+        st.session_state['bboxes'].append(bbox(
+             output['all_drawings'][-1],
+             inference.run(output['all_drawings'][-1])))
+
+    
         st.rerun()
+
+    # if 'rerun' not in st.session_state:
+    #     st.session_state['rerun'] = 0
+    #     print('rerun')
+    #     st.rerun()
 
 
     # update_map(pt)
     # st.rerun()
     # detect()
 
-if (output['all_drawings'] is None or len(output['all_drawings'])==0) and 'bbox' in st.session_state:
-    del st.session_state['bbox']
-    del st.session_state['rerun']
+if (output['all_drawings'] is None or len(output['all_drawings'])==0):
+    st.session_state['bboxes'] = []
+    # del st.session_state['rerun']
 
-if 'bbox' in st.session_state:
-    st.write(st.session_state['bbox'])
+# if 'bbox' in st.session_state:
+#     st.write(st.session_state['bbox'])
 
