@@ -1,9 +1,9 @@
-from shapely.geometry import box, Point
 import os
 import glob
 import rasterio as rio
 import geopandas as gpd
 import pandas as pd
+from shapely import Point
 
 def txt_to_shp(txt_dir, img_dir, shp_dir):
 

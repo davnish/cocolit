@@ -3,7 +3,7 @@ import streamlit as st
 from folium.plugins import Draw
 from streamlit_folium import st_folium
 from pipelines.inference import InferencePipeline
-from src.datacls import bbox
+from src.bbox import BBox
 from pathlib import Path
 import torch
 import geopandas as gpd
@@ -20,8 +20,6 @@ filehandler = logging.FileHandler('log/streamlit.log')
 filehandler.setLevel(logging.INFO)
 
 logger.addHandler(filehandler)
-
-
 
 st.title("CocoDet")
 
@@ -44,8 +42,6 @@ tile = folium.TileLayer(
 
 tile.add_to(m)
 
-# ZOOM = 17
-
 pt = folium.FeatureGroup(name = 'CocoTrees')
 
 Draw(
@@ -65,16 +61,6 @@ Draw(
 
 layer_control = folium.LayerControl()
 
-# pt.add_to(m)
-
-
-# def detect():
-
-# prev = None
-
-
-# @st.fragment(run_every=0.5)
-# def update_map(pt):
 if 'bboxes' in st.session_state and len(st.session_state['bboxes']) > 0:
     try:
         # need to fix the bug of calling the inference every time the map changes. for e.g if zoom level changes.
@@ -84,64 +70,58 @@ if 'bboxes' in st.session_state and len(st.session_state['bboxes']) > 0:
         # logger.info(f"Got the shp {gdf}")
 
         for i in st.session_state['bboxes']:
-            trees = folium.GeoJson(i.pred, name='CocoTrees',
-                                marker=folium.Circle(radius=4, fill_color="orange", fill_opacity=0.1, color="orange", weight=1),
-                                highlight_function=lambda x: {"fillOpacity": 0.8},
-                                )
-            pt.add_child(trees)
+            if i.preds is not None:
+                trees = folium.GeoJson(i.preds, name='CocoTrees',
+                                    marker=folium.Circle(radius=4, fill_color="orange", fill_opacity=0.1, color="orange", weight=1),
+                                    highlight_function=lambda x: {"fillOpacity": 0.8},
+                                    )
+                pt.add_child(trees)
             
 
 
     except Exception as e:
             logger.error(f"Error {e}") 
 
+c1, c2 = st.columns(2)
 
-output =  st_folium(m, 
-        feature_group_to_add=pt, 
-        use_container_width=True,
-        layer_control=layer_control,
-        )
+with c1:
+    output =  st_folium(m, 
+            feature_group_to_add=pt, 
+            use_container_width=True,
+            layer_control=layer_control,
+            )
 
 # output = update_map()
-logging.info(output)
+    logging.info(output)
+with c2:
+    area = 0
+    if 'bboxes' in st.session_state and len(st.session_state['bboxes']) > 0:
+        for i in st.session_state['bboxes']:
+            area += i.area
+        st.metric('Area', area)
+
+
 # output = update_map()
 
 # These lines are run after st_folium to get the ouput dict which consist the info of the bbox
 
+all_drawings = output['all_drawings']
+
+
 if output['all_drawings'] is not None and len(output['all_drawings'])>0:
-    if len(st.session_state['bboxes'])>0:
-       
-       if output['all_drawings'][-1] != st.session_state['bboxes'][-1].data:
-        st.session_state['bboxes'].append(bbox(
-             output['all_drawings'][-1],
-             inference.run(output['all_drawings'][-1])
-        ))
 
-       else: 
-           pass
+    if len(st.session_state['bboxes'])>0 and output['all_drawings'][-1] == st.session_state['bboxes'][-1].data:
+        pass
     else:
-
-        st.session_state['bboxes'].append(bbox(
-             output['all_drawings'][-1],
-             inference.run(output['all_drawings'][-1])))
-
-    
+        st.session_state['bboxes'].append(inference.run(BBox(output['all_drawings'][-1])))
         st.rerun()
 
-    # if 'rerun' not in st.session_state:
-    #     st.session_state['rerun'] = 0
-    #     print('rerun')
-    #     st.rerun()
-
-
-    # update_map(pt)
-    # st.rerun()
-    # detect()
-
 if (output['all_drawings'] is None or len(output['all_drawings'])==0):
-    st.session_state['bboxes'] = []
-    # del st.session_state['rerun']
 
-# if 'bbox' in st.session_state:
-#     st.write(st.session_state['bbox'])
+    if 'bboxes' not in st.session_state: 
+        st.session_state['bboxes'] = []
+    elif len(st.session_state['bboxes'])>0:
+        st.session_state['bboxes'] = []
+        st.rerun()
+
 
