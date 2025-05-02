@@ -34,10 +34,3 @@ if __name__ == "__main__":
    gdf = get_shapefile(data)
    print(gdf.crs)  # Uncommented to check the coordinate reference system
    gdf.to_file("output.shp", driver='ESRI Shapefile')
-
-   # geometry = shape(data['geometry'])
-
-   # gdf = gpd.GeoDataFrame(geometry = [geometry], crs="EPSG:4326")
-   # gdf.plot()
-   # plt.show()
-# print(gdf)

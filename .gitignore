@@ -187,3 +187,8 @@ models/
 
 #additional environments
 /env2
+
+
+#mlflow
+/mlruns
+

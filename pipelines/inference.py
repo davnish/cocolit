@@ -4,14 +4,15 @@ from src.geojson_to_shapefile import get_shapefile
 from src.download import TMStoGeoTIFF
 from src.txt_to_shp import txt_to_shp
 from src.valid_bbox import valid_bbox
+# from src.datacls import get_path
 from pathlib import Path
 import geopandas as gpd
 from geopandas import GeoDataFrame
 import tempfile
 import shutil
 import time
-
 import logging
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -48,10 +49,12 @@ class InferencePipeline:
     
     def run(self, data : dict) -> GeoDataFrame:
         try:
+            dir, image_path, txt_path = self.get_paths()
+            logger.info("Temps paths created")
+
             bbox = self.preprocess(data)
             logger.info("Processed and validated bbox")
 
-            dir, image_path, txt_path = self.get_paths()
 
             data = TMStoGeoTIFF(output=image_path, bbox=bbox) ###### This will change after db integration. After each prediction we will update the name of the file.
             data.download()
@@ -66,8 +69,9 @@ class InferencePipeline:
                             txt_dir=txt_path, 
                             img_dir=dir, 
                             shp_dir=dir
-                            ).to_crs(epsg = 4326)
+                            ).to_crs(epsg=4326)
             else:
+                logger.info(f"No Predictions found")
                 return None
             logger.info(f"txt to shp done, Total preds of trees {len(preds)}.")
             return preds
@@ -88,9 +92,6 @@ class InferencePipeline:
 
 if __name__ == "__main__":
     data = {"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[80.020219,7.809309],[80.020219,7.810361],[80.021667,7.810361],[80.021667,7.809309],[80.020219,7.809309]]]}}
-    
-    # gdf = inference(data, "models/train15/weights/best.pt" )
-    # print(gdf)
 
     inference = InferencePipeline("models/train15/weights/best.pt")
     gdf = inference.run(data)
