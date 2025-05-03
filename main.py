@@ -9,17 +9,15 @@ import torch
 import geopandas as gpd
 import logging
 import os
-
+from rich.logging import RichHandler
 st.set_page_config(layout="wide")
 
 # os.environ["STREAMLIT_WATCHER_TYPE"] = "none"
 torch.classes.__path__ = []
 
-logger = logging.getLogger(__name__)
-filehandler = logging.FileHandler('log/streamlit.log')
-filehandler.setLevel(logging.INFO)
-
-logger.addHandler(filehandler)
+logging.config.fileConfig('configs/streamlit.config')
+logger = logging.getLogger()
+logger.handlers[0] = RichHandler(markup=True)
 
 st.title("CocoDet")
 
@@ -91,14 +89,20 @@ with c1:
             layer_control=layer_control,
             )
 
-# output = update_map()
-    logging.info(output)
+
 with c2:
     area = 0
+    cnt = 0
     if 'bboxes' in st.session_state and len(st.session_state['bboxes']) > 0:
-        for i in st.session_state['bboxes']:
-            area += i.area
-        st.metric('Area', area)
+        for bbox in st.session_state['bboxes']:
+            area += bbox.area
+        
+            if bbox.preds is not None: 
+                cnt += len(bbox.preds)
+
+    st.metric('Total Area (Km2)', area/1e6)
+    st.metric('Total Count', cnt)
+    st.metric('Total Density', area/cnt if cnt>0 else 0)
 
 
 # output = update_map()
@@ -113,8 +117,15 @@ if output['all_drawings'] is not None and len(output['all_drawings'])>0:
     if len(st.session_state['bboxes'])>0 and output['all_drawings'][-1] == st.session_state['bboxes'][-1].data:
         pass
     else:
-        st.session_state['bboxes'].append(inference.run(BBox(output['all_drawings'][-1])))
-        st.rerun()
+        
+        bbox = inference.run(BBox(output['all_drawings'][-1])) ## Its happening because if no prediction inference will return none, need to fix this
+        if bbox is not None: # This check is add if due to any error inference will return None.
+
+            st.session_state['bboxes'].append(bbox)
+            logger.info(f"No of bbox {len(st.session_state['bboxes'])}")
+            st.rerun()
+        else:
+            st.error("ERROR: Please refresh the app or delete the drawings.")
 
 if (output['all_drawings'] is None or len(output['all_drawings'])==0):
 

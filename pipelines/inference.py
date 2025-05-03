@@ -28,7 +28,7 @@ class InferencePipeline:
     
         self.model = YOLO(model_path, task='detect')
 
-    def run(self, bbox : BBox) -> BBox:
+    def run(self, bbox : BBox) -> BBox | None:
         try:
 
             bbox.valid_bbox()
@@ -46,11 +46,11 @@ class InferencePipeline:
 
             if bbox.preds is not None:
                 logger.info(f"results to GeoDataFrame Done, Total preds of trees {len(bbox.preds)}.")
-                return bbox
             
             else:
                 logger.info(f"No Predictions found")
-                return None
+
+            return bbox
 
         except InvalidBBox as e:
             logger.error(f"Invalid bounding box: {e}")
