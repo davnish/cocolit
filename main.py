@@ -72,7 +72,7 @@ if 'bboxes' in st.session_state and len(st.session_state['bboxes']) > 0:
 
 
     except Exception as e:
-            logger.error(f"Error {e}") 
+            logger.exception(f"Error {e}") 
 
 c1, c2 = st.columns(2)
 

@@ -11,20 +11,23 @@ import numpy as np
 import pandas as pd
 import geopandas as gpd
 from src.PatchRaster import PatchRaster
+import uuid
 
 @dataclass
 class GetPath:
     temp_name: str = 'image'
     dir: Path = field(init=False)
     image_path: Path = field(init=False)
-    txt_path: Path = field(init=False)
+    save_path: Path = field(init=False)
     patched : Path = field(init=False)
+
 
     def __post_init__(self):
         self.dir = Path(tempfile.mkdtemp(dir = 'data/'))
         self.image_path = self.dir / f"{self.temp_name}.tif"
-        self.txt_path = self.dir / f"predict/labels/{self.temp_name}.txt"
+        self.save_path = Path('data', 'preds.csv')
         self.patched = self.dir / "patched"
+
         self.patched.mkdir(parents=True, exist_ok=True)
     
     def rm(self):
@@ -38,6 +41,7 @@ class BBox:
     bounds : int = field(init = False, default_factory=list)
     preds : GeoDataFrame = field(init = False, default = None)
     path : GetPath = field(init = False, default = None)
+    id   : str = field(default_factory=lambda : str(uuid.uuid4()))
 
     def __post_init__(self) -> None:
         self.gdf= self.get_shapefile(self.data)
@@ -65,7 +69,6 @@ class BBox:
         
     def get_preds(self, res: list) -> GeoDataFrame | None:
         preds = None
-        # breakpoint()
         for idx, i in enumerate(res): 
             if res[idx].boxes.shape[0]>0:
                 _res = res[idx].boxes.numpy()
@@ -84,10 +87,9 @@ class BBox:
 
                 df['x'] = df['x'] * (bottom_right_corner[0] - top_left_corner[0]) + top_left_corner[0]
                 df['y'] = top_left_corner[1] - df['y'] * (top_left_corner[1] - bottom_right_corner[1])
+                df['geometry'] = [Point(x, y) for x, y in zip(df.x, df.y)]
 
-                df['centroid'] = [Point(x, y) for x, y in zip(df.x, df.y)]
-
-                pred = gpd.GeoDataFrame(geometry = df['centroid'], crs = crs).to_crs(epsg=4326)
+                pred = gpd.GeoDataFrame(df, geometry='geometry', crs = crs).to_crs(epsg=4326)
 
                 if preds is None:
                     preds = pred
@@ -95,6 +97,20 @@ class BBox:
                     preds = df = pd.concat([preds, pred], ignore_index = True)
                     
         return preds
+    
+    def save(self) -> None:
+        if self.preds is not None:
+            self.preds['id'] = self.id
+            column_order = ['id', 'conf', 'x', 'y', 'width', 'height', 'geometry']
+            self.preds = self.preds[column_order]
+
+            if self.path.save_path.exists():
+                existing = pd.read_csv(self.path.save_path)
+                combined = pd.concat([existing, self.preds], ignore_index=True)
+            else:
+                combined = self.preds
+            combined.to_csv(self.path.save_path, index=False)
+                
 
     def preprocess(self) -> None:
         PatchRaster(self.path.image_path, output_patched_ras=self.path.patched, patch_size=640, padding=True)

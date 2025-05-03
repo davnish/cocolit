@@ -36,7 +36,6 @@ class InferencePipeline:
             res = self.model.predict(source=bbox.path.patched)
             logger.info(f"Inference done")
             
-
             bbox.preds = bbox.get_preds(res)
 
             if bbox.preds is not None:
@@ -56,7 +55,8 @@ class InferencePipeline:
             return None
         
         finally:
-            # bbox.path.rm()
+            bbox.path.rm()
+            bbox.save()
             logger.info("Paths removed")
 
 
