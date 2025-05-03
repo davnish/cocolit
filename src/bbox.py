@@ -10,6 +10,7 @@ from .exceptions import InvalidBBox
 import numpy as np
 import pandas as pd
 import geopandas as gpd
+from src.PatchRaster import PatchRaster
 
 @dataclass
 class GetPath:
@@ -17,11 +18,14 @@ class GetPath:
     dir: Path = field(init=False)
     image_path: Path = field(init=False)
     txt_path: Path = field(init=False)
+    patched : Path = field(init=False)
 
     def __post_init__(self):
         self.dir = Path(tempfile.mkdtemp(dir = 'data/'))
         self.image_path = self.dir / f"{self.temp_name}.tif"
         self.txt_path = self.dir / f"predict/labels/{self.temp_name}.txt"
+        self.patched = self.dir / "patched"
+        self.patched.mkdir(parents=True, exist_ok=True)
     
     def rm(self):
         shutil.rmtree(self.dir)
@@ -60,31 +64,42 @@ class BBox:
             raise InvalidBBox("Bounding box area is less than the minimum limit of 0.1 km2.")    
         
     def get_preds(self, res: list) -> GeoDataFrame | None:
-        if res[0].boxes.shape[0]>0:
-            res = res[0].boxes.numpy()
-            xywhn = res.xywhn
-            conf = np.expand_dims(res.conf, axis=1)
+        preds = None
+        # breakpoint()
+        for idx, i in enumerate(res): 
+            if res[idx].boxes.shape[0]>0:
+                _res = res[idx].boxes.numpy()
+                xywhn = _res.xywhn
+                conf = np.expand_dims(_res.conf, axis=1)
 
-            pred = np.concat((conf, xywhn), axis=-1)
-            
-            with rio.open(self.path.image_path) as src:
-                bounds = src.bounds
-                crs = src.crs
-                top_left_corner = (bounds.left, bounds.top)
-                bottom_right_corner = (bounds.right, bounds.bottom)    
-            
-            df = pd.DataFrame(pred, columns = ['conf', 'x', 'y', 'width', 'height'])  
+                pred = np.concat((conf, xywhn), axis=-1)
+                
+                with rio.open(i.path) as src:
+                    bounds = src.bounds
+                    crs = src.crs
+                    top_left_corner = (bounds.left, bounds.top)
+                    bottom_right_corner = (bounds.right, bounds.bottom)    
+                
+                df = pd.DataFrame(pred, columns = ['conf', 'x', 'y', 'width', 'height'])  
 
-            df['x'] = df['x'] * (bottom_right_corner[0] - top_left_corner[0]) + top_left_corner[0]
-            df['y'] = top_left_corner[1] - df['y'] * (top_left_corner[1] - bottom_right_corner[1])
+                df['x'] = df['x'] * (bottom_right_corner[0] - top_left_corner[0]) + top_left_corner[0]
+                df['y'] = top_left_corner[1] - df['y'] * (top_left_corner[1] - bottom_right_corner[1])
 
-            df['centroid'] = [Point(x, y) for x, y in zip(df.x, df.y)]
+                df['centroid'] = [Point(x, y) for x, y in zip(df.x, df.y)]
 
-            preds = gpd.GeoDataFrame(geometry = df['centroid'], crs = crs).to_crs(epsg=4326)
-            return preds
-        else:
-            return None
-            
+                pred = gpd.GeoDataFrame(geometry = df['centroid'], crs = crs).to_crs(epsg=4326)
+
+                if preds is None:
+                    preds = pred
+                else:
+                    preds = df = pd.concat([preds, pred], ignore_index = True)
+                    
+        return preds
+
+    def preprocess(self) -> None:
+        PatchRaster(self.path.image_path, output_patched_ras=self.path.patched, patch_size=640, padding=True)
+        
+                 
     
 if __name__ == '__main__':
     data = {"type":"Feature",

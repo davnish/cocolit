@@ -15,8 +15,8 @@ st.set_page_config(layout="wide")
 # os.environ["STREAMLIT_WATCHER_TYPE"] = "none"
 torch.classes.__path__ = []
 
-logging.config.fileConfig('configs/streamlit.config')
-logger = logging.getLogger()
+logging.config.fileConfig('configs/logging.config')
+logger = logging.getLogger('root')
 logger.handlers[0] = RichHandler(markup=True)
 
 st.title("CocoDet")
@@ -61,12 +61,6 @@ layer_control = folium.LayerControl()
 
 if 'bboxes' in st.session_state and len(st.session_state['bboxes']) > 0:
     try:
-        # need to fix the bug of calling the inference every time the map changes. for e.g if zoom level changes.
-
-
-        
-        # logger.info(f"Got the shp {gdf}")
-
         for i in st.session_state['bboxes']:
             if i.preds is not None:
                 trees = folium.GeoJson(i.preds, name='CocoTrees',
@@ -89,7 +83,6 @@ with c1:
             layer_control=layer_control,
             )
 
-
 with c2:
     area = 0
     cnt = 0
@@ -102,7 +95,7 @@ with c2:
 
     st.metric('Total Area (Km2)', area/1e6)
     st.metric('Total Count', cnt)
-    st.metric('Total Density', area/cnt if cnt>0 else 0)
+    st.metric('Total Density', cnt/area if area>0 else 0)
 
 
 # output = update_map()

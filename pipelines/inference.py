@@ -1,22 +1,14 @@
 from ultralytics import YOLO
 from src.exceptions import InvalidBBox
-# from src.geojson_to_shapefile import get_shapefile
 from src.download import TMStoGeoTIFF
-from src.txt_to_shp import txt_to_shp
-# from src.valid_bbox import valid_bbox
-# from src.datacls import get_path
 from src.bbox import BBox
-from pathlib import Path
-import geopandas as gpd
-from geopandas import GeoDataFrame
-import tempfile
-import shutil
-import time
 import logging
+from rich.logging import RichHandler
 
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logging.config.fileConfig('configs/logging.config')
+logger = logging.getLogger('inference')
+logger.handlers[0] = RichHandler(markup=True)
 
 # converting to class
 
@@ -38,10 +30,13 @@ class InferencePipeline:
             data.download()
             logger.info("Downloaded the images")
 
-            res = self.model.predict(source=bbox.path.image_path)
+            bbox.preprocess()
+            logger.info("Patching the raster")
+
+            res = self.model.predict(source=bbox.path.patched)
             logger.info(f"Inference done")
             
-            # breakpoint()
+
             bbox.preds = bbox.get_preds(res)
 
             if bbox.preds is not None:
@@ -61,7 +56,7 @@ class InferencePipeline:
             return None
         
         finally:
-            bbox.path.rm()
+            # bbox.path.rm()
             logger.info("Paths removed")
 
 
