@@ -127,5 +127,3 @@ if (output['all_drawings'] is None or len(output['all_drawings'])==0):
     elif len(st.session_state['bboxes'])>0:
         st.session_state['bboxes'] = []
         st.rerun()
-
-

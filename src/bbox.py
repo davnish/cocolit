@@ -25,7 +25,7 @@ class GetPath:
     def __post_init__(self):
         self.dir = Path(tempfile.mkdtemp(dir = 'data/'))
         self.image_path = self.dir / f"{self.temp_name}.tif"
-        self.save_path = Path('data', 'preds.csv')
+        self.save_path = Path('data', 'preds.shp')
         self.patched = self.dir / "patched"
 
         self.patched.mkdir(parents=True, exist_ok=True)
@@ -105,11 +105,12 @@ class BBox:
             self.preds = self.preds[column_order]
 
             if self.path.save_path.exists():
-                existing = pd.read_csv(self.path.save_path)
+                existing = gpd.read_file(self.path.save_path)
                 combined = pd.concat([existing, self.preds], ignore_index=True)
             else:
                 combined = self.preds
-            combined.to_csv(self.path.save_path, index=False)
+
+            combined.to_file(self.path.save_path, driver= 'ESRI Shapefile', index=False)
                 
 
     def preprocess(self) -> None:
