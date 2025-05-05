@@ -4,20 +4,20 @@ from folium.plugins import Draw
 from streamlit_folium import st_folium
 from pipelines.inference import InferencePipeline
 from src.bbox import BBox
-from pathlib import Path
+# from pathlib import Path
 import torch
-import geopandas as gpd
-import logging
-import os
+# import geopandas as gpd
+# import os
 from rich.logging import RichHandler
+
 st.set_page_config(layout="wide")
 
 # os.environ["STREAMLIT_WATCHER_TYPE"] = "none"
 torch.classes.__path__ = []
 
-logging.config.fileConfig('configs/logging.config')
-logger = logging.getLogger('root')
-logger.handlers[0] = RichHandler(markup=True)
+from src.logger_config import setup_logger
+
+logger = setup_logger('main', 'main.log')
 
 st.title("CocoDet")
 
@@ -74,7 +74,7 @@ if 'bboxes' in st.session_state and len(st.session_state['bboxes']) > 0:
     except Exception as e:
             logger.exception(f"Error {e}") 
 
-c1, c2 = st.columns(2)
+c1, c2 = st.columns([2,1])
 
 with c1:
     output =  st_folium(m, 
