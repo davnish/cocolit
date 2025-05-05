@@ -43,7 +43,7 @@ class InferencePipeline:
             bbox.preds = bbox.get_preds(res)
 
             if bbox.preds is not None:
-                logger.info(f"results to GeoDataFrame Done, Total preds of trees {len(bbox.preds)}.")
+                logger.info(f"results conversion to GeoDataFrame done")
             
             else:
                 logger.info(f"No Predictions found")

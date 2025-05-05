@@ -108,27 +108,28 @@ class BBox:
                 if preds is None:
                     preds = pred
                 else:
-                    preds = df = pd.concat([preds, pred], ignore_index = True)
+                    preds = pd.concat([preds, pred], ignore_index = True)
+
+                logger.debug(f'preds of {idx} tile {preds.shape}')
                     
         return preds
 
     def get_preds_feedback_gdf(self) -> tuple[GeoDataFrame, GeoDataFrame]:
-
         self.preds['id'] = self.id
         self.preds['id_preds'] = [str(uuid.uuid4()) for i in range(len(self.preds))]
-
-        feedback = self.preds[self.preds['conf']<0.5]
+        
+        feedback = self.preds[self.preds['conf']<0.5].copy()
         feedback['yes'] = 0
         feedback['no'] = 0
 
         self.low_conf = len(feedback)
 
-        self.preds = self.preds.drop(feedback.index)
+        preds = self.preds.drop(feedback.index)
         
         column_order_preds = ['id', 'id_preds', 'conf', 'x', 'y', 'width', 'height', 'geometry']
         column_order_feedback = ['id', 'id_preds', 'conf', 'x', 'y', 'width', 'height', 'yes', 'no', 'geometry']
         
-        preds = self.preds[column_order_preds]
+        preds = preds[column_order_preds]
         feedback = feedback[column_order_feedback]
 
         if self.path.preds_path.exists():
@@ -136,7 +137,7 @@ class BBox:
             combined_preds = pd.concat([existing_preds, preds], ignore_index=True)
 
             existing_feedback = gpd.read_file(self.path.feedback_path)
-            combined_feedback = gpd.concat([existing_feedback, preds], ignore_index=True)
+            combined_feedback = pd.concat([existing_feedback, preds], ignore_index=True)
         else:
             combined_preds = preds
             combined_feedback = feedback
@@ -153,12 +154,12 @@ class BBox:
                 feedback.to_file(self.path.feedback_path, driver= 'ESRI Shapefile', index=False)
                 bbox.to_file(self.path.bbox_path, driver= 'ESRI Shapefile', index=False)
                 
-                logger.info('Saved bbox, preds and feedback gdf')
+                logger.info(f'Saved bbox, preds and feedback gdf')
 
             except Exception as e:
                 logger.error('Error Not able to save the gdf', exc_info=True) # change this to log
         else:
-            logger.config('No preds saved.')
+            logger.info('No preds saved.')
     
     def get_bbox_gdf(self, low_conf: int) -> GeoDataFrame:
         self.gdf['datetime'] = datetime.now()

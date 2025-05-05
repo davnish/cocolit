@@ -18,6 +18,7 @@ torch.classes.__path__ = []
 from src.logger_config import setup_logger
 
 logger = setup_logger('main', 'main.log')
+logger.handlers[2] = RichHandler(markup=True)
 
 st.title("CocoDet")
 
@@ -115,7 +116,7 @@ if output['all_drawings'] is not None and len(output['all_drawings'])>0:
         if bbox is not None: # This check is add if due to any error inference will return None.
 
             st.session_state['bboxes'].append(bbox)
-            logger.info(f"No of bbox {len(st.session_state['bboxes'])}")
+            logger.info(f"bbox ID {bbox.id}, No of Coconute trees in bbox {len(bbox.preds)}")
             st.rerun()
         else:
             st.error("ERROR: Please refresh the app or delete the drawings.")

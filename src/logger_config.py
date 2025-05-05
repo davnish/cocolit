@@ -28,6 +28,10 @@ def setup_logger(name: str, logfile: str, level=logging.DEBUG):
         error_handler = logging.FileHandler(os.path.join(log_dir, "errors.log"))
         error_handler.setLevel(logging.ERROR)
 
+        #creating a shared debug file
+        debug_handler = logging.FileHandler(os.path.join(log_dir, 'debug.log'))
+        debug_handler.setLevel(logging.DEBUG)
+
         # Common formatter
         formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         file_handler.setFormatter(formatter)
@@ -35,6 +39,7 @@ def setup_logger(name: str, logfile: str, level=logging.DEBUG):
 
         logger.addHandler(file_handler)
         logger.addHandler(error_handler)
+        logger.addHandler(debug_handler)
 
         # Optional: Also log to console
         console_handler = logging.StreamHandler()
