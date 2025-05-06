@@ -23,10 +23,7 @@ class TMStoGeoTIFF:
         self.overwrite = overwrite
         self.zoom = zoom
         self.quiet = quiet
-
-    
-
-
+        
     def download(self) -> None:
         """
         Download TMS data and convert to GeoTIFF format.

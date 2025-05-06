@@ -5,11 +5,6 @@ from src.bbox import BBox
 import logging
 from rich.logging import RichHandler
 
-
-# logging.config.fileConfig('configs/logging.config')
-# logger = logging.getLogger('inference')
-# logger.handlers[0] = RichHandler(markup=True)
-
 from src.logger_config import setup_logger
 
 logger = setup_logger('inference', 'inference.log')

@@ -137,7 +137,7 @@ class BBox:
             combined_preds = pd.concat([existing_preds, preds], ignore_index=True)
 
             existing_feedback = gpd.read_file(self.path.feedback_path)
-            combined_feedback = pd.concat([existing_feedback, preds], ignore_index=True)
+            combined_feedback = pd.concat([existing_feedback, feedback], ignore_index=True)
         else:
             combined_preds = preds
             combined_feedback = feedback

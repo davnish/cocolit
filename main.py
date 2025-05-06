@@ -8,6 +8,7 @@ from src.bbox import BBox
 import torch
 # import geopandas as gpd
 # import os
+from src.feedback import init_feedback
 from rich.logging import RichHandler
 
 st.set_page_config(layout="wide")
@@ -20,7 +21,9 @@ from src.logger_config import setup_logger
 logger = setup_logger('main', 'main.log')
 logger.handlers[2] = RichHandler(markup=True)
 
-st.title("CocoDet")
+st.title("Coco:blue[Det] :palm_tree:")
+
+st.caption('Lets detect some coconuts! :sunglasses:')
 
 @st.cache_resource
 def load_inference(model_path):
@@ -82,6 +85,7 @@ with c1:
             feature_group_to_add=pt, 
             use_container_width=True,
             layer_control=layer_control,
+            height=400
             )
 
 with c2:
@@ -128,3 +132,10 @@ if (output['all_drawings'] is None or len(output['all_drawings'])==0):
     elif len(st.session_state['bboxes'])>0:
         st.session_state['bboxes'] = []
         st.rerun()
+
+
+st.header("Feedbacks :seedling:")
+st.caption("Help the current model improve by giving suggestions.")
+st.caption("Can you recognize the below images at coconut trees.")
+
+init_feedback()
