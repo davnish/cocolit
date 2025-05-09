@@ -38,6 +38,7 @@ class InferencePipeline:
             bbox.preds = bbox.get_preds(res)
 
             if bbox.preds is not None:
+                bbox.save()
                 logger.info(f"results conversion to GeoDataFrame done")
             
             else:
@@ -55,7 +56,6 @@ class InferencePipeline:
         
         finally:
             bbox.path.rm()
-            bbox.save()
             logger.info("Paths removed")
 
 

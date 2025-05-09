@@ -12,7 +12,11 @@ import pandas as pd
 import geopandas as gpd
 from src.PatchRaster import PatchRaster
 from datetime import datetime
+from .database.connection import engine
 import uuid
+from sqlmodel import Session
+from .database.model import BoundingBox, Pred, Feedback
+from shapely.wkt import dumps
 
 from src.logger_config import setup_logger
 
@@ -52,12 +56,12 @@ class BBox:
     preds : GeoDataFrame = field(init = False, default = None)
     path : GetPath = field(init = False, default = None)
     low_conf : int = field(init=False, default=None)
-    id   : str = field(default_factory=lambda : str(uuid.uuid4()))
+    id : str = field(default_factory=lambda : str(uuid.uuid4()))
 
     def __post_init__(self) -> None:
-        self.gdf= self.get_shapefile(self.data)
+        self.gdf = self.get_shapefile(self.data)
+        self.bounds = self.gdf.to_crs(4326).bounds.to_numpy().tolist()[0]
         self.area = self.gdf.geometry.iloc[0].area
-        self.bounds = self.gdf.to_crs(epsg=4326).bounds.to_numpy().tolist()[0]
         self.path = GetPath()
     
     def get_shapefile(self, data) -> GeoDataFrame:
@@ -65,7 +69,7 @@ class BBox:
       Convert GeoJSON to Shapefile
       """
       geometry = shape(data['geometry'])
-      gdf = GeoDataFrame(geometry=[geometry], crs="EPSG:4326").to_crs(epsg=3857)
+      gdf = GeoDataFrame(geometry=[geometry], crs="EPSG:4326").to_crs(3857)
       return gdf
 
     def valid_bbox(self) -> bool:
@@ -103,7 +107,7 @@ class BBox:
                 df['y'] = top_left_corner[1] - df['y'] * (top_left_corner[1] - bottom_right_corner[1])
                 df['geometry'] = [Point(x, y) for x, y in zip(df.x, df.y)]
 
-                pred = gpd.GeoDataFrame(df, geometry='geometry', crs = crs).to_crs(epsg=4326)
+                pred = gpd.GeoDataFrame(df.loc[:, ['conf', 'geometry']], geometry='geometry', crs = crs)
 
                 if preds is None:
                     preds = pred
@@ -111,6 +115,8 @@ class BBox:
                     preds = pd.concat([preds, pred], ignore_index = True)
 
                 logger.debug(f'preds of {idx} tile {preds.shape}')
+        
+        # breakpoint()
                     
         return preds
 
@@ -145,33 +151,44 @@ class BBox:
         return combined_preds, combined_feedback
 
     def save(self):
-        if self.preds is not None:
-            try:
-                preds, feedback = self.get_preds_feedback_gdf()
-                bbox = self.get_bbox_gdf(len(feedback))
 
-                preds.to_file(self.path.preds_path, driver= 'ESRI Shapefile', index=False)
-                feedback.to_file(self.path.feedback_path, driver= 'ESRI Shapefile', index=False)
-                bbox.to_file(self.path.bbox_path, driver= 'ESRI Shapefile', index=False)
-                
-                logger.info(f'Saved bbox, preds and feedback gdf')
+        with Session(engine) as session:
+            bbox = BoundingBox(datetime = datetime.now().strftime('%Y-%m-%d %H:%M:%S'), geometry = dumps(self.gdf.loc[0,'geometry']))
 
-            except Exception as e:
-                logger.error('Error Not able to save the gdf', exc_info=True) # change this to log
-        else:
-            logger.info('No preds saved.')
+            for idx, pred in self.preds.iterrows():
+                pred = Pred(conf=pred['conf'], geometry=dumps(pred['geometry']), bbox = bbox)
+                session.add(pred)
+                if pred.conf<0.4:
+                    session.add(Feedback(bbox = bbox, pred = pred))
+
+            session.commit()
+
+
+
+        
+    #     if self.preds is not None:
+    #         try:
+    #             preds, feedback = self.get_preds_feedback_gdf()
+    #             bbox = self.get_bbox_gdf(len(feedback))
+
+    #             preds.to_file(self.path.preds_path, driver= 'ESRI Shapefile', index=False)
+    #             feedback.to_file(self.path.feedback_path, driver= 'ESRI Shapefile', index=False)
+    #             # bbox.to_file(self.path.bbox_path, driver= 'ESRI Shapefile', index=False)
+    #             bbox.to_postgis('bbox', con=engine, if_exists='append', index=False)
+    #             logger.info(f'Saved bbox, preds and feedback gdf')
+
+    #         except Exception as e:
+    #             logger.error('Error Not able to save the gdf', exc_info=True) # change this to log
+    #     else:
+    #         logger.info('No preds saved.')
     
-    def get_bbox_gdf(self, low_conf: int) -> GeoDataFrame:
-        self.gdf['datetime'] = datetime.now()
-        self.gdf['low_conf'] = low_conf
-        self.gdf['id'] = self.id
-        gdf = self.gdf[['id', 'datetime', 'low_conf', 'geometry']]
-        if self.path.bbox_path.exists():
-            existing = gpd.read_file(self.path.bbox_path)
-            combined = pd.concat([existing, gdf], ignore_index=True)
-        else:
-            combined = gdf
-        return combined
+    # def get_bbox_gdf(self, low_conf: int) -> GeoDataFrame:
+
+    #     self.gdf['datetime'] = pd.Timestamp().now()
+    #     self.gdf['low_conf'] = low_conf
+    #     # self.gdf['id'] = self.id
+    #     gdf = self.gdf[['datetime', 'low_conf', 'geometry']]
+    #     return gdf
     
 if __name__ == '__main__':
     data = {"type":"Feature",
@@ -183,14 +200,15 @@ if __name__ == '__main__':
                         [-85.078125,38.61687]]]
                         }}
     
+
     # _bbox = BBox(data = data)
     # print(_bbox.area)
     # # _bbox.pred = 0
     # print(_bbox.bounds)
 
 
-    temp = GetPath()
-    temp2 = GetPath()
-    print(temp.dir)
-    print(temp2)
+    # temp = GetPath()
+    # temp2 = GetPath()
+    # print(temp.dir)
+    # print(temp2)
 

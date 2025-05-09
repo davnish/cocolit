@@ -1,0 +1,18 @@
+version: '3.11'  # Docker Compose file format version
+
+services:
+  db:  # Name of the service (you can reference this later)
+    image: postgis/postgis:15-3.3   # Docker image with PostGIS extension already installed
+    container_name: postgis-db  # Optional custom name for the container
+    restart: always  # Automatically restart container if it crashes or system reboots
+    environment:
+      POSTGRES_USER: postgres  # Username to access the DB
+      POSTGRES_PASSWORD: postgres  # Password for that user
+      POSTGRES_DB: coconut_db  # Name of the database that gets auto-created at startup
+    ports:
+      - "5432:5432"  # Map local port 5432 → container's port 5432 (PostgreSQL default)
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Persist data between container restarts
+
+volumes:
+  postgres_data:  # Named volume for persistent DB storage
