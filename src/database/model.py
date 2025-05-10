@@ -1,8 +1,6 @@
-from sqlmodel import SQLModel, Session, Field, Column, Relationship
+from sqlmodel import SQLModel, Field, Column, Relationship
 from geoalchemy2 import Geometry
-from datetime import datetime
-# from shapely import Point
-from typing import Any, Optional
+from typing import Optional
 from .connection import engine
 
 
@@ -10,7 +8,6 @@ class BoundingBox(SQLModel, table=True):
     id : int | None = Field(default = None, primary_key=True)
     datetime : str
     geometry : str = Field(sa_column=Column(Geometry('POLYGON', srid=3857)))
-
     preds : list["Pred"] = Relationship(back_populates="bbox")
     feedbacks : list["Feedback"] = Relationship(back_populates="bbox", cascade_delete=True)
 
@@ -32,10 +29,11 @@ class Feedback(SQLModel, table=True):
     bbox : BoundingBox = Relationship(back_populates="feedbacks")
     pred : Pred = Relationship(back_populates="feedback")
 
-
-if __name__ == "__main__":
-
+def create_db():
     SQLModel.metadata.create_all(engine)
 
+
+if __name__ == "__main__":
+    pass
 
     

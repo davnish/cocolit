@@ -2,8 +2,7 @@ from ultralytics import YOLO
 from src.exceptions import InvalidBBox
 from src.download import TMStoGeoTIFF
 from src.bbox import BBox
-import logging
-from rich.logging import RichHandler
+from src.database.dal.preds import preds_bbox_to_database
 
 from src.logger_config import setup_logger
 
@@ -38,7 +37,6 @@ class InferencePipeline:
             bbox.preds = bbox.get_preds(res)
 
             if bbox.preds is not None:
-                bbox.save()
                 logger.info(f"results conversion to GeoDataFrame done")
             
             else:
@@ -57,6 +55,9 @@ class InferencePipeline:
         finally:
             bbox.path.rm()
             logger.info("Paths removed")
+
+            preds_bbox_to_database(bbox.gdf, bbox.preds)
+            logger.info("Data Saved to Database")
 
 
 if __name__ == "__main__":

@@ -12,7 +12,7 @@ from typing import List, Any
 from sqlmodel import Session
 from .database.connection import engine
 from .database.model import Feedback
-from .database.dao.feedback_repository import FeedbackDAO
+from .database.dal.feedback import FeedbackDAO
 
 
 logger = setup_logger('feedbox', 'feedbox.log')
@@ -104,9 +104,10 @@ class Queue:
     
 
 if __name__ == "__main__":
-    import time
-    st = time.time()
+    from time import perf_counter
+
+    st = perf_counter()
     q = Queue()
-    print(q.dequeue_enqueue()[1])
-    ed = time.time()
+    # print(q.dequeue_enqueue()[1])
+    ed = perf_counter()
     print(ed-st)
