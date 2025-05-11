@@ -38,7 +38,13 @@ class InferencePipeline:
 
             if bbox.preds is not None:
                 logger.info(f"results conversion to GeoDataFrame done")
-            
+                try:
+                    logger.info("Sending data to database")
+                    preds_bbox_to_database(bbox.gdf, bbox.preds)
+                except Exception as e:
+                    logger.error(f"ERROR: Data not saved in server. most probably server down. {e}")
+
+                logger.info("Data Saved to Database")
             else:
                 logger.info(f"No Predictions found")
 
@@ -55,9 +61,6 @@ class InferencePipeline:
         finally:
             bbox.path.rm()
             logger.info("Paths removed")
-
-            preds_bbox_to_database(bbox.gdf, bbox.preds)
-            logger.info("Data Saved to Database")
 
 
 if __name__ == "__main__":

@@ -8,6 +8,8 @@ from src.logger_config import setup_logger
 from enum import Enum
 from pipelines.inference import InferencePipeline
 from typing import List
+import geopandas as gpd
+import requests
 
 logger = setup_logger('map_ui', 'map_ui.log')
 logger.handlers[2] = RichHandler(markup=True)
@@ -123,16 +125,6 @@ def get_inference(all_drawings: dict, inference : InferencePipeline):
             else:
                 st.error("ERROR: Please refresh the app or delete the drawings.")
 
-def get_output(m, pt, layer_control):
-    output = st_folium(m, 
-            feature_group_to_add=pt, 
-            use_container_width=True,
-            layer_control=layer_control,
-            returned_objects=['all_drawings'],
-            height=Map.height.value
-            )
-    return output['all_drawings']
-
 def show_metrics():
     area = 0
     cnt = 0
@@ -151,3 +143,23 @@ def show_metrics():
         st.metric('Total Count in Selected Area', cnt)
     with cols[2]:
         st.metric('Total Density of Coconutes in Selected Area(per Km²)', f"{density:.2f}")
+
+
+def get_respose():
+
+    url = 'http://127.0.0.1:8000/predict'
+
+    json = {
+            "xmin": 80.00295370817186,
+            "ymin": 7.5521705091205416,
+            "xmax": 80.00529795885087,
+            "ymax": 7.553680785799453
+            }
+
+    respose = requests.post(url, json=json)
+    data = respose.json()["predictions"]
+    # print()
+    # geometry = shape(data)
+    gdf = gpd.GeoDataFrame.from_features(data["features"])
+    print(gdf)
+

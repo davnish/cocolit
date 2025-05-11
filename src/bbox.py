@@ -10,9 +10,10 @@ from .exceptions import InvalidBBox
 import numpy as np
 import pandas as pd
 import geopandas as gpd
-from src.PatchRaster import PatchRaster
-
-from src.logger_config import setup_logger
+from .PatchRaster import PatchRaster
+from pydantic import BaseModel
+from .logger_config import setup_logger
+from shapely.geometry import box
 
 logger = setup_logger('bbox', 'bbox.log')
 
@@ -32,21 +33,42 @@ class GetPath:
     def rm(self):
         shutil.rmtree(self.dir)
 
+class BBoxBounds(BaseModel):
+    xmin: float
+    ymin: float
+    xmax: float
+    ymax: float
+
+    
+    def to_list(self):
+        """Return bounds as a list."""
+        return [self.xmin, self.ymin, self.xmax, self.ymax]
+
 @dataclass
 class BBox:
-    data : dict
+    data : dict | BBoxBounds
     gdf  : GeoDataFrame = field(init = False, default=None)
     area : float = field(init = False, default=0)
     bounds : int = field(init = False, default_factory=list)
     preds : GeoDataFrame = field(init=False, default=None)
     path : GetPath = field(init = False, default = None)
+
     def __post_init__(self) -> None:
-        self.gdf = self.get_shapefile(self.data)
-        self.bounds = self.gdf.to_crs(4326).bounds.to_numpy().tolist()[0]
+        if isinstance(self.data, dict):
+            self.gdf = self.geojson_to_gdf(self.data)
+            self.bounds = self.gdf.to_crs(4326).bounds.to_numpy().tolist()[0]
+        else:
+            self.gdf = self.bounds_to_gdf(self.data)
+            self.bounds = self.data.to_list()
         self.area = self.gdf.geometry.iloc[0].area
         self.path = GetPath()
+
+    def bounds_to_gdf(self, data: BBoxBounds) -> GeoDataFrame:
+        polygon = box(*data.to_list())
+        gdf = gpd.GeoDataFrame({'geometry': [polygon]}, crs="EPSG:4326")
+        return gdf.to_crs(3857)
     
-    def get_shapefile(self, data) -> GeoDataFrame:
+    def geojson_to_gdf(self, data) -> GeoDataFrame:
       """
       Convert GeoJSON to Shapefile
 
