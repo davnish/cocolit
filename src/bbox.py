@@ -25,7 +25,8 @@ class GetPath:
     patched : Path = field(init=False)
 
     def __post_init__(self):
-        self.dir = Path(tempfile.mkdtemp(dir = 'data/'))
+        dir = Path('data').mkdir(parent=True, exist_ok=True)
+        self.dir = Path(tempfile.mkdtemp(dir = dir))
         self.image_path = self.dir / f"{self.temp_name}.tif"
         self.patched = self.dir / "patched"
         self.patched.mkdir(parents=True, exist_ok=True)
