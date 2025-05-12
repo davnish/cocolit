@@ -5,3 +5,4 @@ pygdal==3.2.2.*
 ultralytics
 requests
 ensure
+geoalchemy2
