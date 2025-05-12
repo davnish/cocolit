@@ -34,10 +34,11 @@ WORKDIR /app
 # Leverage a cache mount to /root/.cache/pip to speed up subsequent builds.
 # Leverage a bind mount to requirements.txt to avoid having to copy them into
 # into this layer.
+RUN apt-get install ffmpeg libsm6 libxext6 -y
 RUN apt-get install g++
 RUN apt-get update && apt-get install -y libgdal-dev
 RUN apt-get install -y gcc
-RUN --mount=type=cache,target=/root/.cache/pip \
+RUN --mount=type=cache,target=/root/.cache/pip
     --mount=type=bind,source=requirements.txt,target=requirements.txt \
     python -m pip install -r requirements.txt
 
