@@ -6,3 +6,4 @@ ultralytics
 requests
 ensure
 geoalchemy2
+psycopg2-binary
