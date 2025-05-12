@@ -4,5 +4,3 @@ sqlmodel
 pygdal==3.2.2.*
 ultralytics
 requests
-logging
-opencv-python

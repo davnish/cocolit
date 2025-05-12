@@ -2,17 +2,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 import streamlit as st
 import numpy as np
-import cv2
-# import logging
 import geopandas as gpd
 from .logger_config import setup_logger
 from src.download import TMStoGeoTIFF
-from typing import List, Any
 
-from sqlmodel import Session
-from .database.connection import engine
-from .database.model import Feedback
 from .database.dal.feedback import FeedbackDAO
+from PIL import Image, ImageDraw
 
 
 logger = setup_logger('feedbox', 'feedbox.log')
@@ -42,14 +37,18 @@ class FeedBox:
                 self.download()
                 logger.info('Image Downloaded')
             
-            img = cv2.imread(self.image_path, cv2.IMREAD_COLOR_RGB)
+            img = Image.open(self.image_path).convert('RGB')
             logger.info('Image Read')
 
-            img = np.asarray(img)
+            # Converting to numpy array
+            img_np = np.asarray(img)
 
-            width, height = img.shape[:2]
-            centroid = (width//2, height//2)
-            img = cv2.circle(img, centroid, 16, (255,255,0), 1) 
+            width, height = img_np.shape[:2]
+            centroid = (width // 2, height // 2)
+
+            draw = ImageDraw.Draw(img)
+            draw.circle(centroid,radius=16, fill=None, outline=(255, 255, 0), width=1)
+
 
             st.image(img, use_container_width=True)
 
