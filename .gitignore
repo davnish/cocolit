@@ -178,7 +178,7 @@ cython_debug/
 # data/
 
 #models
-models/
+models/*
 *.pt 
 
 .DS_Store
@@ -199,3 +199,7 @@ models/
 
 
 .conda/
+
+secrets.toml
+
+!models/best.onnx

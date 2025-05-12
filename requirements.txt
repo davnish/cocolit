@@ -1,5 +1,5 @@
-dvc
-ultralytics
-streamlit
 streamlit-folium
 rasvec
+sqlmodel
+pygdal
+ultralytics
