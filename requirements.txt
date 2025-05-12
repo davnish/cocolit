@@ -3,3 +3,4 @@ rasvec
 sqlmodel
 pygdal
 ultralytics
+requests
