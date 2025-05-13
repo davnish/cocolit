@@ -24,8 +24,7 @@ class InferencePipeline:
             bbox.valid_bbox()
             logger.info("Processed and validated bbox")
 
-            data = TMStoGeoTIFF(output=bbox.path.image_path, bbox=bbox.bounds) ###### This will change after db integration. After each prediction we will update the name of the file.
-            data.download()
+            data = TMStoGeoTIFF(output=bbox.path.image_path, bbox=bbox.bounds) 
             logger.info("Downloaded the images")
 
             bbox.preprocess()
