@@ -3,7 +3,6 @@ from src.exceptions import InvalidBBox
 from src.download import TMStoGeoTIFF
 from src.bbox import BBox
 from src.database.dal.preds import preds_bbox_to_database
-
 from src.logger_config import setup_logger
 
 logger = setup_logger('inference', 'inference.log')
@@ -18,13 +17,13 @@ class InferencePipeline:
     
         self.model = YOLO(model_path, task='detect')
 
-    def run(self, bbox : BBox) -> BBox | None:
+    def run(self, bbox : BBox, conn: bool | None = False) -> BBox | None:
         try:
 
             bbox.valid_bbox()
             logger.info("Processed and validated bbox")
 
-            data = TMStoGeoTIFF(output=bbox.path.image_path, bbox=bbox.bounds) 
+            TMStoGeoTIFF(output=bbox.path.image_path, bbox=bbox.bounds) 
             logger.info("Downloaded the images")
 
             bbox.preprocess()
@@ -37,11 +36,12 @@ class InferencePipeline:
 
             if bbox.preds is not None:
                 logger.info(f"results conversion to GeoDataFrame done")
-                try:
-                    logger.info("Sending data to database")
-                    preds_bbox_to_database(bbox.gdf, bbox.preds)
-                except Exception as e:
-                    logger.error(f"ERROR: Data not saved in server. most probably server down. {e}")
+                if conn:
+                    try:
+                        preds_bbox_to_database(bbox.gdf, bbox.preds)
+                        logger.info("Data Saved to database")
+                    except Exception as e:
+                        logger.error(f"ERROR: Data not saved in server. most probably server down. {e}")
 
                 logger.info("Data Saved to Database")
             else:
@@ -63,8 +63,9 @@ class InferencePipeline:
 
 
 if __name__ == "__main__":
+    from pathlib import Path
     data = {"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[80.020219,7.809309],[80.020219,7.810361],[80.021667,7.810361],[80.021667,7.809309],[80.020219,7.809309]]]}}
     bbox = BBox(data)
-    inference = InferencePipeline("models/train15/weights/best.pt")
+    inference = InferencePipeline(Path("models/best.pt"))
     bbox = inference.run(bbox)
     print(bbox.preds)

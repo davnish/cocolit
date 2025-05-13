@@ -14,6 +14,8 @@ import requests
 logger = setup_logger('map_ui', 'map_ui.log')
 logger.handlers[2] = RichHandler(markup=True)
 
+
+
 class Map(Enum):
     location : List[float] = [7.551830,80.020504]
     zoom_start: int = 15
@@ -110,14 +112,14 @@ def add_predictions():
             st.error("Failed to add predictions. Please refresh the page.")
     return pt
 
-def get_inference(all_drawings: dict, inference : InferencePipeline):
+def get_inference(all_drawings: dict, inference : InferencePipeline, conn: bool):
     if all_drawings is not None and len(all_drawings)>0:
 
         if len(st.session_state['bboxes'])>0 and all_drawings[-1] == st.session_state['bboxes'][-1].data:
             pass
         else:
             
-            bbox = inference.run(BBox(all_drawings[-1]))
+            bbox = inference.run(BBox(all_drawings[-1]), conn)
             if bbox is not None:
                 st.session_state['bboxes'].append(bbox)
                 logger.info("Get Inference : Rerun")
@@ -161,5 +163,4 @@ def get_respose():
     # print()
     # geometry = shape(data)
     gdf = gpd.GeoDataFrame.from_features(data["features"])
-    print(gdf)
 

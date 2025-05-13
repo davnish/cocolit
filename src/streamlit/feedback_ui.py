@@ -1,9 +1,7 @@
 
 import streamlit as st
-from streamlit_folium import st_folium
 from src.feedbox import FeedBox, Queue
 from src.logger_config import setup_logger
-
 
 
 logger = setup_logger('feedback', 'feedback.log')
@@ -11,14 +9,16 @@ logger = setup_logger('feedback', 'feedback.log')
 def init_feedback():
 
     if 'queue' not in st.session_state:
-        st.session_state['queue'] = Queue()
+        try:
+            st.session_state['queue'] = Queue()
+        except Exception as e:
+            st.error("Server Down Right Now")
 
     feedboxes_no = 6
 
     with st.container():
         cols = st.columns(feedboxes_no)
         for idx in range(1, feedboxes_no + 1):
-
 
             with cols[idx-1]:
                 pos = f'{idx}_feedbox'
@@ -31,7 +31,6 @@ def init_feedback():
                 else:
                     id_bounds : list = st.session_state[pos]
 
-                # breakpoint()
                 feedbox = FeedBox(pos, id_bounds)
                 feedbox.make_feedbox()
 

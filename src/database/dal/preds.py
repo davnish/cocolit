@@ -4,7 +4,9 @@ from shapely.wkt import dumps
 from datetime import datetime
 from ..model import BoundingBox, Feedback, Pred
 from ..connection import engine
-
+import geopandas as gpd
+from pathlib import Path
+import streamlit as st
 
 def preds_bbox_to_database(bbox: GeoDataFrame, preds : GeoDataFrame) -> None:
     with Session(engine) as session:
@@ -15,3 +17,15 @@ def preds_bbox_to_database(bbox: GeoDataFrame, preds : GeoDataFrame) -> None:
             if pred.conf<0.2:
                 session.add(Feedback(bbox = bbox, pred = pred))
         session.commit()
+
+def read_data():
+    query = "SELECT * FROM pred"
+    pred = gpd.read_postgis(query, con=engine, crs = 3857, geom_col="geometry").to_crs(4326)
+    country_shp = Path("data", "countries", "world-administrative-boundaries.shp")
+    country = gpd.read_file(country_shp)
+    return pred, country
+
+
+if __name__ == "__main__":
+
+    pass

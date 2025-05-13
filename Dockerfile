@@ -35,9 +35,18 @@ WORKDIR /app
 # Leverage a bind mount to requirements.txt to avoid having to copy them into
 # into this layer.
 
-RUN apt-get install g++
-RUN apt-get update && apt-get install -y libgdal-dev
-RUN apt-get install -y gcc
+# RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install\
+#     libgl1\
+#     libgl1-mesa-glx \ 
+#     libglib2.0-0 -y && \
+#     rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && apt-get install -y libgdal-dev libglib2.0-0 libgl1 libgl1-mesa-glx
+
+RUN apt-get install -y build-essential
+
+# RUN apt-get install gcc -y 
+
 RUN --mount=type=cache,target=/root/.cache/pip \
     --mount=type=bind,source=requirements.txt,target=requirements.txt \
     python -m pip install -r requirements.txt
@@ -52,4 +61,4 @@ COPY . .
 EXPOSE 8501
 
 # Run the application.
-CMD streamlit run main.py
+ENTRYPOINT ["streamlit", "run", "main.py"]

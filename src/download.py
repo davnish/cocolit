@@ -19,15 +19,14 @@ def TMStoGeoTIFF(
             overwrite=overwrite, 
             zoom=zoom, 
             quiet=quiet,
-            
-        
+    )
         
 if __name__ == "__main__":
     # Example usage
     bbox = [74.347916, 24.287027, 74.355469, 24.293128999999997]
     output = Path("output.tif")
     downloader = TMStoGeoTIFF(output=output, bbox=bbox)
-    downloader.download()
+    # downloader.download()
 
 
 

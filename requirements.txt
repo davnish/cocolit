@@ -1,9 +1,11 @@
 rasvec
 streamlit-folium
 sqlmodel
-pygdal==3.2.2.*
+pygdal==3.6.2.*
 ultralytics
 requests
 ensure
 geoalchemy2
 psycopg2-binary
+onnxruntime
+rich

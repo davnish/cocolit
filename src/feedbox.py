@@ -21,6 +21,7 @@ class FeedBox:
         self.id = self.id_bounds[0]
         self.bounds = self.id_bounds[1]
         self.dir: Path = Path('data/feedback')
+        self.dir.mkdir(parents=True, exist_ok=True)
         self.image_path = self.dir / f"{self.id}.tiff"
 
     def update_value(self, col):
@@ -29,7 +30,6 @@ class FeedBox:
 
     def download(self):
         ras = TMStoGeoTIFF(self.image_path, bbox=self.bounds)
-        ras.download()
 
     def make_feedbox(self):
         try: 

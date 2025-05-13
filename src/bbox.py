@@ -25,7 +25,9 @@ class GetPath:
     patched : Path = field(init=False)
 
     def __post_init__(self):
-        dir = Path('data').mkdir(parents=True, exist_ok=True)
+        dir = Path('data')
+        dir.mkdir(parents=True, exist_ok=True)
+
         self.dir = Path(tempfile.mkdtemp(dir = dir))
         self.image_path = self.dir / f"{self.temp_name}.tif"
         self.patched = self.dir / "patched"
@@ -108,7 +110,7 @@ class BBox:
                 xywhn = _res.xywhn
                 conf = np.expand_dims(_res.conf, axis=1)
 
-                pred = np.concat((conf, xywhn), axis=-1)
+                pred = np.concatenate((conf, xywhn), axis=-1)
                 
                 with rio.open(i.path) as src:
                     bounds = src.bounds

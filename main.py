@@ -1,17 +1,21 @@
 
 import streamlit as st
 import torch
-from src.feedback import init_feedback
-from src.streamlit.maps_ui import get_map, init_boxes, add_predictions, get_inference, show_metrics, load_inference
-from pathlib import Path
-from enum import Enum
-from streamlit_folium import st_folium
 from src.model_config import Model
+from streamlit_folium import st_folium
+from src.database.connection import test_connection
+
+st.set_page_config(layout='wide')
+from src.streamlit.feedback_ui import init_feedback
+from src.streamlit.maps_ui import get_map, init_boxes, add_predictions, get_inference, show_metrics, load_inference
+from src.streamlit.statistics_ui import init_statistics
 
 torch.classes.__path__ = []
-st.set_page_config(layout='wide')
 
 inference = load_inference(Model.path.value)
+
+if 'conn' not in st.session_state:
+    conn = test_connection()
 
 st.title("Coco:blue[lit] :palm_tree:")
 st.caption('Lets detect some coconuts! :sunglasses:')
@@ -32,15 +36,22 @@ with st.container(height=400, border=False):
 
 show_metrics()
 
-get_inference(all_drawings, inference)
+get_inference(all_drawings, inference, conn)
 
 init_boxes(all_drawings)
 
 
-try:
-    st.header("Feedbacks :seedling:")
-    st.caption("Help the current model improve by giving suggestions.")
-    st.caption("Can you recognize the below images at coconut trees.")
-    init_feedback()
-except Exception as e:
-    st.error("Server Down Right Now")
+if conn:
+    try:
+        init_statistics()
+    except Exception as e:
+        st.error("Internal Error")
+    try:
+        st.header("Feedbacks :seedling:")
+        st.caption("Help the current model improve by giving suggestions.")
+        st.caption("Can you recognize the below images at coconut trees.")
+
+        init_feedback()
+    except Exception as e:
+        st.error("Server Error")
+

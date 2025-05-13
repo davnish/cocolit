@@ -1,5 +1,3 @@
-version: '3.11'  # Docker Compose file format version
-
 services:
   db:  # Name of the service (you can reference this later)
     image: postgis/postgis:15-3.3   # Docker image with PostGIS extension already installed
@@ -14,5 +12,23 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data  # Persist data between container restarts
 
+
+
+  streamlit:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: cocolit
+    restart: always
+    ports: 
+      - "8501:8501"
+    depends_on: 
+      - db
+    volumes:
+      - .streamlit/secrets.toml:/app/.streamlit/secrets.toml
+
 volumes:
   postgres_data:  # Named volume for persistent DB storage
+
+
+
