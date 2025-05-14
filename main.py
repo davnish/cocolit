@@ -32,8 +32,7 @@ if 'zoom' not in st.session_state:
     st.session_state['zoom'] = Map.ZOOM.value
 
 if 'conn' not in st.session_state:
-    # st.session_state['conn'] = test_connection()
-    st.session_state['conn'] = False
+    st.session_state['conn'] = test_connection()
     logger.info("Testing Connection")
 
 inference = load_inference(Model.path.value)
@@ -63,7 +62,8 @@ with helpers[0]:
 
 with helpers[1]:
     if st.button('Next Place', icon=":material/mood:"):
-        centers = [[11.2588, 75.780], [17.0050, 82.2400], [-12.9704, 38.5124], [10.2435, 106.3750]]
+        centers = [[11.2588, 75.780], [17.0050, 82.2400], [-12.9704, 38.5124], 
+                   [10.2435, 106.3750], [7.551830,80.020504]]
         selected = random.choice(centers)
 
         st.session_state['center'] = selected
