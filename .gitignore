@@ -183,7 +183,7 @@ models/*
 
 .DS_Store
 
-/data
+data/*
 
 #additional environments
 /env2
@@ -203,3 +203,4 @@ models/*
 secrets.toml
 
 !models/best.onnx
+!data/countries
