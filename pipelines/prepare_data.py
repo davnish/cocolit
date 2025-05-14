@@ -21,8 +21,7 @@ def PrepareDataset(
 
     try:
 
-        data = TMStoGeoTIFF(output=raster_path, bbox=bbox)
-        data.download()
+        TMStoGeoTIFF(output=raster_path, bbox=bbox)
         logging.info(f"Data downloaded and saved to {raster_path}")
 
         PatchRaster(raster_path, output_patched_ras=raster_patch_path, patch_size=640, padding=True)

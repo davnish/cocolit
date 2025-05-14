@@ -1,15 +1,18 @@
 
 import streamlit as st
 import torch
-from src.model_config import Model
 from streamlit_folium import st_folium
-from src.database.connection import test_connection
+from src.logger_config import setup_logger
 
 st.set_page_config(layout='wide')
+
+from src.model_config import Model
+from src.database.connection import test_connection
 from src.streamlit.feedback_ui import init_feedback
 from src.streamlit.maps_ui import get_map, init_boxes, add_predictions, get_inference, show_metrics, load_inference
 from src.streamlit.statistics_ui import init_statistics
 
+logger = setup_logger('main', 'main.log')
 torch.classes.__path__ = []
 
 inference = load_inference(Model.path.value)
@@ -46,6 +49,7 @@ if conn:
         init_statistics()
     except Exception as e:
         st.error("Internal Error")
+        logger.error(e)
     try:
         st.header("Feedbacks :seedling:")
         st.caption("Help the current model improve by giving suggestions.")
@@ -54,4 +58,5 @@ if conn:
         init_feedback()
     except Exception as e:
         st.error("Server Error")
+        
 

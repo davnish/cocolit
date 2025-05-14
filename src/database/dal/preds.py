@@ -14,7 +14,7 @@ def preds_bbox_to_database(bbox: GeoDataFrame, preds : GeoDataFrame) -> None:
         for _, pred in preds.iterrows():
             pred = Pred(conf=pred['conf'], geometry=dumps(pred['geometry']), bbox = bbox)
             session.add(pred)
-            if pred.conf<0.2:
+            if pred.conf<0.3:
                 session.add(Feedback(bbox = bbox, pred = pred))
         session.commit()
 
