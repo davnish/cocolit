@@ -1,5 +1,4 @@
 from ultralytics import YOLO
-from src.exceptions import InvalidBBox
 from src.download import TMStoGeoTIFF
 from src.bbox import BBox
 from src.database.dal.preds import preds_bbox_to_database
@@ -7,7 +6,6 @@ from src.logger_config import setup_logger
 
 logger = setup_logger('inference', 'inference.log')
 
-# converting to class
 
 class InferencePipeline:
     def __init__(
@@ -49,13 +47,9 @@ class InferencePipeline:
 
             return bbox
 
-        except InvalidBBox as e:
-            logger.error(f"Invalid bounding box: {e}")
-            return None
-
         except Exception as e:
             logger.error(f"An error occurred: {e}", exc_info=True)
-            return None
+            raise
         
         finally:
             bbox.path.rm()

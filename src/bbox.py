@@ -6,7 +6,7 @@ from shapely.geometry import Point
 from geopandas import GeoDataFrame
 from shapely.geometry import shape
 import rasterio as rio
-from .exceptions import InvalidBBox
+from .exceptions import BBoxTooBig, BBoxTooSmall
 import numpy as np
 import pandas as pd
 import geopandas as gpd
@@ -85,12 +85,12 @@ class BBox:
     def valid_bbox(self) -> bool:
         """Check if the bounding box is valid."""
 
-        # if bbox area is more than 5 km2
-        if self.area > 5e6:
-            raise InvalidBBox("Bounding box area exceeds the maximum limit of 5 km2.")
-        # if bbox area is less than 0.1 km2
-        elif self.area < 1e4:
-            raise InvalidBBox("Bounding box area is less than the minimum limit of 0.1 km2.")    
+        # if bbox area is more than 10 km2
+        if self.area > 10e6:
+            raise BBoxTooBig
+        # if bbox area is less than 25 m2
+        elif self.area < 625:
+            raise BBoxTooSmall  
     
     def preprocess(self) -> None:
         """

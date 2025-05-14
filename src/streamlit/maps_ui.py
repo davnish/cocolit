@@ -1,26 +1,26 @@
 import folium
 import streamlit as st
 from folium.plugins import Draw
-from streamlit_folium import st_folium
 from src.bbox import BBox
 from rich.logging import RichHandler
 from src.logger_config import setup_logger
 from enum import Enum
 from pipelines.inference import InferencePipeline
 from typing import List
+from folium.plugins import Geocoder
 import geopandas as gpd
 import requests
 
+
 logger = setup_logger('map_ui', 'map_ui.log')
 logger.handlers[2] = RichHandler(markup=True)
-
 
 
 class Map(Enum):
     location : List[float] = [7.551830,80.020504]
     zoom_start: int = 15
     layergroup_name : str = 'CocoLit'
-    height : int = 400
+    height : int = 200
 
 @st.cache_resource
 def load_inference(model_path):
@@ -30,12 +30,13 @@ def load_inference(model_path):
 
 
 def get_map():
-    m = folium.Map(
-        location=Map.location.value, 
-        zoom_start=Map.zoom_start.value, 
-        tiles = None,
-        height=Map.height.value
-        )
+    m = folium.Map(tiles = None, zoom_control=False)
+
+    Geocoder(
+    collapsed=True, 
+    add_marker=True,  
+    placeholder="Search for a city...",
+    ).add_to(m)
 
     tile = folium.TileLayer(
                 tiles = 'http://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}',
@@ -118,14 +119,15 @@ def get_inference(all_drawings: dict, inference : InferencePipeline, conn: bool)
         if len(st.session_state['bboxes'])>0 and all_drawings[-1] == st.session_state['bboxes'][-1].data:
             pass
         else:
-            
-            bbox = inference.run(BBox(all_drawings[-1]), conn)
-            if bbox is not None:
+            try:
+                bbox = inference.run(BBox(all_drawings[-1]), conn)
                 st.session_state['bboxes'].append(bbox)
                 logger.info("Get Inference : Rerun")
                 st.rerun()
-            else:
-                st.error("ERROR: Please refresh the app or delete the drawings.")
+
+            except:
+                raise
+
 
 def show_metrics():
     area = 0

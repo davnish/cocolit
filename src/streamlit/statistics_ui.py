@@ -16,6 +16,7 @@ def init_statistics():
     with st.container(height=400):
             cols = st.columns(2)
             with cols[1]:
+
                 pred, country = read_data()
                 countries_cnt, locations = country_statistics(pred, country)
                 st.metric('Ran in coutries:', len(countries_cnt))
@@ -23,14 +24,13 @@ def init_statistics():
                 st.dataframe(countries_cnt['Trees_Detected'])
 
             with cols[0]:
-
-                m = folium.Map(zoom_start=3)
+                m = folium.Map(zoom_start=3, height=200)
                 pred['latitude'], pred['longitude'] = pred.geometry.x, pred.geometry.y
                 heat_data = pred[['longitude', 'latitude']].values.tolist()
                 HeatMap(heat_data, radius=10, blur=10).add_to(m)
                 
                 st_folium(m, 
                 use_container_width=True,
-                height=350
+                height=400
                 )
 
