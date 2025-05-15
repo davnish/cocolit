@@ -94,12 +94,12 @@ def add_predictions(config):
                             color=config['map_ui']['prediction']['color'], 
                             weight=config['map_ui']['prediction']['weight']
                         ),
-                        highlight_function=lambda x: {"fillOpacity": config['map_ui']['prediction']['highlight']['fillopacity']},
+                        highlight_function=lambda x: {"fillOpacity": config['map_ui']['prediction']['highlight']['fill_opacity']},
                     )
                     pt.add_child(trees) 
 
         except Exception as e:
-            logger.error(f"Error adding predictions: {e}", exec_info=True)
+            logger.error(f"Error adding predictions: {e}", exc_info=True)
             st.error("Failed to add predictions. Please refresh the page.")
             raise
     return pt

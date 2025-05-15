@@ -28,6 +28,7 @@ def set_random_center():
     centers = config['map_ui']['centers']
     locations = config['map_ui']['locations']
     idx = random.choice(range(len(centers)))
+
     st.session_state['center'] = centers[idx]
     st.session_state['location'] = locations[idx]
 
@@ -40,7 +41,7 @@ if 'zoom' not in st.session_state:
 if 'conn' not in st.session_state:
     try:
         test_connection()
-        st.session_state['conn'] = True
+        st.session_state['conn'] = False
     except:
         st.session_state['conn'] = False
         logger.fatal("Database Server Down:", exc_info=True)
@@ -130,3 +131,4 @@ if st.session_state['conn']:
         except Exception as e:
             st.session_state['show_feedback']=False
             logger.fatal(e, exc_info=True)
+# st.rerun()

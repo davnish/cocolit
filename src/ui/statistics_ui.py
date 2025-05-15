@@ -13,7 +13,7 @@ def country_statistics(pred, country):
     return countries_cnt, locations
 
 def init_statistics(config):
-    st.header('Statistics')
+    st.header('Statistics :bar_chart:')
     with st.container():
             cols = st.columns(2)
             with cols[1]:
