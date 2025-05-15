@@ -41,7 +41,7 @@ if 'zoom' not in st.session_state:
 if 'conn' not in st.session_state:
     try:
         test_connection()
-        st.session_state['conn'] = False
+        st.session_state['conn'] = True
     except:
         st.session_state['conn'] = False
         logger.fatal("Database Server Down:", exc_info=True)
