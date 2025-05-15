@@ -12,10 +12,9 @@ import pandas as pd
 import geopandas as gpd
 from .PatchRaster import PatchRaster
 from pydantic import BaseModel
-from .logger_config import setup_logger
+
 from shapely.geometry import box
 
-logger = setup_logger('bbox', 'bbox.log')
 
 @dataclass
 class GetPath:
@@ -130,8 +129,6 @@ class BBox:
                     preds = pred
                 else:
                     preds = pd.concat([preds, pred], ignore_index = True)
-
-                logger.debug(f'preds of {idx} tile {preds.shape}')
                     
         return preds
     

@@ -26,7 +26,7 @@ if __name__ == "__main__":
     bbox = [74.347916, 24.287027, 74.355469, 24.293128999999997]
     output = Path("output.tif")
     downloader = TMStoGeoTIFF(output=output, bbox=bbox)
-    # downloader.download()
+
 
 
 

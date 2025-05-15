@@ -7,6 +7,7 @@ from enum import Enum
 import random
 st.set_page_config(layout='wide')
 
+
 from src.logger_config import setup_logger
 from src.model_config import Model
 from src.database.connection import test_connection
@@ -16,6 +17,9 @@ from src.streamlit.maps_ui import get_inference, show_metrics, load_inference
 from src.streamlit.statistics_ui import init_statistics
 from src.exceptions import BBoxTooBig, BBoxTooSmall
 
+with open('static/style.css') as f:
+    st.write(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
 logger = setup_logger('main', 'main.log')
 torch.classes.__path__ = []
 
@@ -23,7 +27,7 @@ class Map(Enum):
     LOCATION : list[float] = [7.551830,80.020504]
     ZOOM: int = 15
     layergroup_name : str = 'Cocolit'
-    HEIGHT : int = 350
+    # HEIGHT : int = 350
 
 if 'center' not in st.session_state:
     st.session_state['center'] = Map.LOCATION.value
@@ -32,8 +36,18 @@ if 'zoom' not in st.session_state:
     st.session_state['zoom'] = Map.ZOOM.value
 
 if 'conn' not in st.session_state:
-    st.session_state['conn'] = test_connection()
-    logger.info("Testing Connection")
+    try:
+        test_connection()
+        st.session_state['conn'] = True
+    except:
+        st.session_state['conn'] = False
+        logger.fatal("Database Server Down:", exc_info=True)
+
+if 'show_feedback' not in st.session_state:
+    st.session_state['show_feedback'] = True
+
+if 'show_stats' not in st.session_state:
+    st.session_state['show_stats'] = True
 
 inference = load_inference(Model.path.value)
 
@@ -41,7 +55,8 @@ inference = load_inference(Model.path.value)
 st.title("Coco:blue[lit] :palm_tree:")
 st.write('Lets detect some coconuts! :sunglasses: ')
 st.caption('The current location is selected because this area has abundance of coconut trees \
-           and you can test the model better here. You can tap the "Help?" button below to get a visual guide and "Next Place" to get to a random location to test the model.')
+           and you can test the model better here. You can tap the "Help?" button below to get a visual guide and \
+           "Next Place" to get to a random location to test the model.')
 
 
 helpers = st.columns([0.8,1,7], border=False)
@@ -75,11 +90,10 @@ m, layer_control = get_map()
 
 pt = add_predictions() 
 
-with st.container(height=400, border=False):
+with st.container():
     output = st_folium(m, 
             center = st.session_state['center'],
             zoom=st.session_state['zoom'],
-            height=Map.HEIGHT.value,
             returned_objects=['all_drawings'],
             feature_group_to_add=pt, 
             use_container_width=True,
@@ -95,29 +109,30 @@ with helpers[2]:
         try:
             with st.spinner("Running Inference..", show_time=True):
                 get_inference(all_drawings, inference, st.session_state['conn'])
-
         except BBoxTooSmall:
-            st.error("Bounding Box too small, Increase the Size of bounding box")
+            st.warning("Bounding Box too small, increase the Size of bounding box")
         except BBoxTooBig:
-            st.error("Bounding Box too, big, decrease the size of bounding box")
+            st.warning("Bounding Box too, big, decrease the size of bounding box")
         except Exception as e:
             st.error("There is some Internal Error. Please Referesh the app. :persevere:")
+            logger.fatal(BBoxTooSmall, exc_info=True)
 
 
 if st.session_state['conn']:
-    try:
-        init_statistics()
-    except Exception as e:
-        st.error("Internal Error")
-        logger.error(e)
-    try:
-        st.header("Feedbacks :seedling:")
-        st.caption("Help the current model improve by giving suggestions.")
-        st.caption("Can you recognize the below images at coconut trees.")
+    if st.session_state['show_stats']:
+        try:
+            init_statistics()
+        except Exception as e:
+            st.session_state['show_stats'] = False
+            logger.fatal(e, exc_info=True)
 
-        init_feedback()
-    except Exception as e:
-        st.error("Server Error")
-        st.error(e)
+    if st.session_state['show_feedback']:
+        try:
+            st.header("Feedbacks :seedling:")
+            st.caption("Help the current model improve by giving suggestions.")
+            st.caption("Can you recognize the below images at coconut trees.")
+            init_feedback()
+        except Exception as e:
+            st.session_state['show_feedback']=False
+            logger.fatal(e, exc_info=True)
         
-

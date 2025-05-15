@@ -47,8 +47,7 @@ class InferencePipeline:
 
             return bbox
 
-        except Exception as e:
-            logger.error(f"An error occurred: {e}", exc_info=True)
+        except:
             raise
         
         finally:

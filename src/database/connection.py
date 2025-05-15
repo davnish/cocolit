@@ -20,12 +20,10 @@ engine = get_engine()
 
 
 def test_connection():
-    try:
-        with Session(engine) as session:
-            session.exec(select(BoundingBox).limit(1))
-            return True
-    except Exception as e:
-        return False
+    with Session(engine) as session:
+        session.exec(select(BoundingBox).limit(1))
+        return True
+
 
 
 def create_db():

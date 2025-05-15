@@ -2,7 +2,6 @@ import folium
 import streamlit as st
 from folium.plugins import Draw
 from src.bbox import BBox
-from rich.logging import RichHandler
 from src.logger_config import setup_logger
 from enum import Enum
 from pipelines.inference import InferencePipeline
@@ -13,7 +12,6 @@ import requests
 
 
 logger = setup_logger('map_ui', 'map_ui.log')
-logger.handlers[2] = RichHandler(markup=True)
 
 
 class Map(Enum):
@@ -109,8 +107,9 @@ def add_predictions():
                     pt.add_child(trees) 
 
         except Exception as e:
-            logger.error(f"Error adding predictions: {e}")
+            logger.error(f"Error adding predictions: {e}", exec_info=True)
             st.error("Failed to add predictions. Please refresh the page.")
+            raise
     return pt
 
 def get_inference(all_drawings: dict, inference : InferencePipeline, conn: bool):
@@ -119,14 +118,10 @@ def get_inference(all_drawings: dict, inference : InferencePipeline, conn: bool)
         if len(st.session_state['bboxes'])>0 and all_drawings[-1] == st.session_state['bboxes'][-1].data:
             pass
         else:
-            try:
-                bbox = inference.run(BBox(all_drawings[-1]), conn)
-                st.session_state['bboxes'].append(bbox)
-                logger.info("Get Inference : Rerun")
-                st.rerun()
-
-            except:
-                raise
+            bbox = inference.run(BBox(all_drawings[-1]), conn)
+            st.session_state['bboxes'].append(bbox)
+            logger.info("Get Inference : Rerun")
+            st.rerun()
 
 
 def show_metrics():
@@ -162,7 +157,5 @@ def get_respose():
 
     respose = requests.post(url, json=json)
     data = respose.json()["predictions"]
-    # print()
-    # geometry = shape(data)
     gdf = gpd.GeoDataFrame.from_features(data["features"])
 
