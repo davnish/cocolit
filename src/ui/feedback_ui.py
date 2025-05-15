@@ -1,11 +1,8 @@
 
 import streamlit as st
 from src.feedbox import FeedBox, Queue
-from src.logger_config import setup_logger
 
-
-
-def init_feedback():
+def init_feedback(config):
 
     if 'queue' not in st.session_state:
         st.session_state['queue'] = Queue()
@@ -13,7 +10,8 @@ def init_feedback():
     # Dynamically Fixing the no of feedboxes to show
 
     positions = len(st.session_state['queue'])
-    feedboxes_no = 6 if positions >= 6 else positions
+    columns = config['feedback_ui']['columns']
+    feedboxes_no = columns if positions >= columns else positions
 
 
     with st.container():

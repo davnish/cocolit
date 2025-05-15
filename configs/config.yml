@@ -1,0 +1,32 @@
+map_ui:
+  centers : [[7.548369,80.019133], [10.7136034,76.0031319], [10.7145754,75.9934711]]
+  locations : ['Divulgasanga, Sri Lanka', 'Kerala, India', 'Kerala, India']
+  zoom: 15
+  layergroup_name : 'Cocolit' 
+  tile: 'http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}'
+  prediction:
+    radius: 4
+    fill_color: 'orange'
+    fill_opacity: 0.1
+    color: 'orange'
+    weight: 1
+    highlight:
+      fill_opacity: 0.8
+
+
+feedback_ui:
+  columns: 6
+  
+statistics_ui:
+  center: [-68.99,-6.21]
+  zoom: 0
+
+  heatmap:
+    radius: 10
+    blur: 10
+
+
+model:
+  path: "models/best.onnx"
+
+

@@ -3,9 +3,7 @@ import streamlit as st
 from folium.plugins import Draw
 from src.bbox import BBox
 from src.logger_config import setup_logger
-from enum import Enum
 from pipelines.inference import InferencePipeline
-from typing import List
 from folium.plugins import Geocoder
 import geopandas as gpd
 import requests
@@ -14,12 +12,6 @@ import requests
 logger = setup_logger('map_ui', 'map_ui.log')
 
 
-class Map(Enum):
-    location : List[float] = [7.551830,80.020504]
-    zoom_start: int = 15
-    layergroup_name : str = 'CocoLit'
-    height : int = 200
-
 @st.cache_resource
 def load_inference(model_path):
     inference = InferencePipeline(model_path)
@@ -27,7 +19,7 @@ def load_inference(model_path):
 
 
 
-def get_map():
+def get_map(config):
     m = folium.Map(tiles = None, zoom_control=False)
 
     Geocoder(
@@ -37,7 +29,7 @@ def get_map():
     ).add_to(m)
 
     tile = folium.TileLayer(
-                tiles = 'http://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}',
+                tiles = config['map_ui']['tile'],
                 attr = 'Google Satellite',
                 name = 'Satellite',
                 overlay = False,
@@ -81,12 +73,12 @@ def init_boxes(all_drawings):
             logger.info("Init Boxes : Rerun")
             st.rerun()
 
-def add_predictions():
+def add_predictions(config):
     """
     If the predictions in `st.session_state['boxes']` not None the it will
     add all prediction to a feature group `pt`
     """
-    pt = folium.FeatureGroup(name=Map.layergroup_name.value)
+    pt = folium.FeatureGroup(name=config['map_ui']['layergroup_name'])
     
     if 'bboxes' in st.session_state and st.session_state['bboxes']:
         try:
@@ -96,13 +88,13 @@ def add_predictions():
                         bbox.preds,
                         name='CocoTrees',
                         marker=folium.Circle(
-                            radius=4, 
-                            fill_color="orange", 
-                            fill_opacity=0.1, 
-                            color="orange", 
-                            weight=1
+                            radius=config['map_ui']['prediction']['radius'], 
+                            fill_color=config['map_ui']['prediction']['fill_color'], 
+                            fill_opacity=config['map_ui']['prediction']['fill_opacity'], 
+                            color=config['map_ui']['prediction']['color'], 
+                            weight=config['map_ui']['prediction']['weight']
                         ),
-                        highlight_function=lambda x: {"fillOpacity": 0.8},
+                        highlight_function=lambda x: {"fillOpacity": config['map_ui']['prediction']['highlight']['fillopacity']},
                     )
                     pt.add_child(trees) 
 

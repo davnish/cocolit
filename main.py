@@ -3,37 +3,39 @@ import streamlit as st
 import torch
 from streamlit_folium import st_folium
 from pathlib import Path
-from enum import Enum
+import yaml
 import random
 st.set_page_config(layout='wide')
 
-
 from src.logger_config import setup_logger
-from src.model_config import Model
 from src.database.connection import test_connection
-from src.streamlit.feedback_ui import init_feedback
-from src.streamlit.maps_ui import get_map, init_boxes, add_predictions
-from src.streamlit.maps_ui import get_inference, show_metrics, load_inference
-from src.streamlit.statistics_ui import init_statistics
+from src.ui.feedback_ui import init_feedback
+from src.ui.maps_ui import get_map, init_boxes, add_predictions
+from src.ui.maps_ui import get_inference, show_metrics, load_inference
+from src.ui.statistics_ui import init_statistics
 from src.exceptions import BBoxTooBig, BBoxTooSmall
 
 with open('static/style.css') as f:
     st.write(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
+with open('configs/config.yml', 'r') as f:
+    config = yaml.safe_load(f)
+
 logger = setup_logger('main', 'main.log')
 torch.classes.__path__ = []
 
-class Map(Enum):
-    LOCATION : list[float] = [7.551830,80.020504]
-    ZOOM: int = 15
-    layergroup_name : str = 'Cocolit'
-    # HEIGHT : int = 350
+def set_random_center():
+    centers = config['map_ui']['centers']
+    locations = config['map_ui']['locations']
+    idx = random.choice(range(len(centers)))
+    st.session_state['center'] = centers[idx]
+    st.session_state['location'] = locations[idx]
 
 if 'center' not in st.session_state:
-    st.session_state['center'] = Map.LOCATION.value
+    set_random_center()
 
 if 'zoom' not in st.session_state:
-    st.session_state['zoom'] = Map.ZOOM.value
+    st.session_state['zoom'] = config['map_ui']['zoom']
 
 if 'conn' not in st.session_state:
     try:
@@ -49,17 +51,17 @@ if 'show_feedback' not in st.session_state:
 if 'show_stats' not in st.session_state:
     st.session_state['show_stats'] = True
 
-inference = load_inference(Model.path.value)
+inference = load_inference(config['model']['path'])
 
 
 st.title("Coco:blue[lit] :palm_tree:")
 st.write('Lets detect some coconuts! :sunglasses: ')
-st.caption('The current location is selected because this area has abundance of coconut trees \
-           and you can test the model better here. You can tap the "Help?" button below to get a visual guide and \
-           "Next Place" to get to a random location to test the model.')
+st.caption(f"he map is currently centered on '{st.session_state['location']}', chosen for its high density of coconut trees, allowing for more effective model testing. \
+            To explore a new random location, click 'Next Place'. \
+            To search for a specific location, tap the '🔍' icon in the top right corner of the map.\
+            For guidance on getting started, tap 'Help?' below for a visual walkthrough.")
 
-
-helpers = st.columns([0.8,1,7], border=False)
+helpers = st.columns([0.8,1,7])
 with helpers[0]:
     with st.popover("Help? :hugging_face:"):
         guides = st.columns(2)
@@ -77,18 +79,12 @@ with helpers[0]:
 
 with helpers[1]:
     if st.button('Next Place', icon=":material/mood:"):
-        centers = [[11.2588, 75.780], [17.0050, 82.2400], [-12.9704, 38.5124], 
-                   [10.2435, 106.3750], [7.551830,80.020504]]
-        selected = random.choice(centers)
-
-        st.session_state['center'] = selected
-        st.session_state['zoom'] = 15
-
+        set_random_center()
         logger.info("Shifting Center")
 
-m, layer_control = get_map()
+m, layer_control = get_map(config)
 
-pt = add_predictions() 
+pt = add_predictions(config) 
 
 with st.container():
     output = st_folium(m, 
@@ -121,7 +117,7 @@ with helpers[2]:
 if st.session_state['conn']:
     if st.session_state['show_stats']:
         try:
-            init_statistics()
+            init_statistics(config)
         except Exception as e:
             st.session_state['show_stats'] = False
             logger.fatal(e, exc_info=True)
@@ -129,10 +125,8 @@ if st.session_state['conn']:
     if st.session_state['show_feedback']:
         try:
             st.header("Feedbacks :seedling:")
-            st.caption("Help the current model improve by giving suggestions.")
-            st.caption("Can you recognize the below images at coconut trees.")
-            init_feedback()
+            st.caption("Help the current model improve by giving suggestions. Can you recognize the below images as coconut trees.")
+            init_feedback(config)
         except Exception as e:
             st.session_state['show_feedback']=False
             logger.fatal(e, exc_info=True)
-        
