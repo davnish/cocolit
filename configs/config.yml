@@ -3,7 +3,7 @@ map_ui:
   locations : ['Divulgasanga, Sri Lanka', 'Kerala, India', 'Kerala, India']
   zoom: 15
   layergroup_name : 'Cocolit' 
-  tile: 'http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}'
+  tile: 'http://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}'
   prediction:
     radius: 4
     fill_color: 'orange'
@@ -12,6 +12,8 @@ map_ui:
     weight: 1
     highlight:
       fill_opacity: 0.8
+
+  helper_vid: 'misc/help_vis.mov'
 
 
 feedback_ui:

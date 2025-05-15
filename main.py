@@ -75,7 +75,7 @@ with helpers[0]:
                 """)
 
         with guides[1]:
-            st.video(Path('misc/help_vis.mov').as_posix(), autoplay=True, muted=True, loop=True)
+            st.video(config['map_ui']['helper_vid'], autoplay=True, muted=True, loop=True)
 
 with helpers[1]:
     if st.button('Next Place', icon=":material/mood:"):
