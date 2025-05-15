@@ -1,6 +1,7 @@
+import PIL.Image
 from rasvec import tms_to_geotiff
 from pathlib import Path
-
+import PIL
 
 def TMStoGeoTIFF(
         output : Path, 
@@ -9,16 +10,18 @@ def TMStoGeoTIFF(
         zoom : int = 19,
         overwrite : bool = True,
         quiet : bool = True,
-        ) -> None:
+        **kwargs
+        ) -> PIL.Image.Image | None:
     
         
-    tms_to_geotiff(
+    return tms_to_geotiff(
             output=output.as_posix(), 
             bbox=bbox, 
             source=source, 
             overwrite=overwrite, 
             zoom=zoom, 
             quiet=quiet,
+            **kwargs
     )
         
 if __name__ == "__main__":

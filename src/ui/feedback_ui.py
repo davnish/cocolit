@@ -13,10 +13,9 @@ def init_feedback(config):
     columns = config['feedback_ui']['columns']
     feedboxes_no = columns if positions >= columns else positions
 
-
     with st.container():
         cols = st.columns(feedboxes_no)
-        for idx in range(1, feedboxes_no + 1):
+        for idx in range(1, feedboxes_no+1):
 
             with cols[idx-1]:
                 pos = f'{idx}_feedbox'

@@ -25,15 +25,15 @@ class FeedBox:
         FeedbackDAO().update_by_id(self.id, col)
 
     def download(self):
-        TMStoGeoTIFF(self.image_path, bbox=self.bounds)
+        return TMStoGeoTIFF(self.image_path, bbox=self.bounds, return_image=True)
 
     def make_feedbox(self):
         """This makes the feedback boxes, shown the main.
         """
         if not self.image_path.exists():
-            self.download()
-        
-        img = Image.open(self.image_path).convert('RGB')
+            img = self.download()
+        else:
+            img = Image.open(self.image_path).convert('RGB')
 
         img_np = np.asarray(img)
 

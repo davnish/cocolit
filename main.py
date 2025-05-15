@@ -18,22 +18,25 @@ from src.exceptions import BBoxTooBig, BBoxTooSmall
 with open('static/style.css') as f:
     st.write(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-with open('configs/config.yml', 'r') as f:
-    config = yaml.safe_load(f)
+@st.cache_data
+def read_config():
+    with open('configs/config.yml', 'r') as f:
+        config = yaml.safe_load(f)
+        return config
+
+config = read_config()
 
 logger = setup_logger('main', 'main.log')
 torch.classes.__path__ = []
 
 def set_random_center():
     centers = config['map_ui']['centers']
-    locations = config['map_ui']['locations']
     idx = random.choice(range(len(centers)))
-
     st.session_state['center'] = centers[idx]
-    st.session_state['location'] = locations[idx]
 
 if 'center' not in st.session_state:
-    set_random_center()
+    st.session_state['center'] = config['map_ui']['centers'][0]
+    st.session_state['location'] = config['map_ui']['locations'][0]
 
 if 'zoom' not in st.session_state:
     st.session_state['zoom'] = config['map_ui']['zoom']
@@ -54,10 +57,9 @@ if 'show_stats' not in st.session_state:
 
 inference = load_inference(config['model']['path'])
 
-
 st.title("Coco:blue[lit] :palm_tree:")
 st.write('Lets detect some coconuts! :sunglasses: ')
-st.caption(f"he map is currently centered on '{st.session_state['location']}', chosen for its high density of coconut trees, allowing for more effective model testing. \
+st.caption(f"The map is default centered on 'Divulgasanga, Sri Lanka', chosen for its high density of coconut trees, allowing for more effective model testing. \
             To explore a new random location, click 'Next Place'. \
             To search for a specific location, tap the '🔍' icon in the top right corner of the map.\
             For guidance on getting started, tap 'Help?' below for a visual walkthrough.")
@@ -81,6 +83,7 @@ with helpers[0]:
 with helpers[1]:
     if st.button('Next Place', icon=":material/mood:"):
         set_random_center()
+
         logger.info("Shifting Center")
 
 m, layer_control = get_map(config)
@@ -131,4 +134,3 @@ if st.session_state['conn']:
         except Exception as e:
             st.session_state['show_feedback']=False
             logger.fatal(e, exc_info=True)
-# st.rerun()
