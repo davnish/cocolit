@@ -1,6 +1,5 @@
-from sqlmodel import create_engine, SQLModel, Session, select
+from sqlmodel import create_engine, SQLModel
 import streamlit as st
-from .model import BoundingBox
 
 
 @st.cache_resource
@@ -9,21 +8,14 @@ def get_engine():
     return engine
 
 
-SERVER = st.secrets.db_conn['host']
-DATABASE = st.secrets.db_conn['database']
-USERNAME = st.secrets.db_conn['user']
-PASSWORD = st.secrets.db_conn['password']
+SERVER = st.secrets.db_conn["host"]
+DATABASE = st.secrets.db_conn["database"]
+USERNAME = st.secrets.db_conn["user"]
+PASSWORD = st.secrets.db_conn["password"]
 
 connection_string = f"postgresql://{USERNAME}:{PASSWORD}@{SERVER}/{DATABASE}"
 
 engine = get_engine()
-
-
-def test_connection():
-    with Session(engine) as session:
-        session.exec(select(BoundingBox).limit(1))
-        return True
-
 
 
 def create_db():

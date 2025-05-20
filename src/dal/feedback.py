@@ -1,26 +1,35 @@
-from ..model import Feedback, Pred
-from ..connection import engine
+from src.database.model import Feedback, Pred
+from src.database.connection import engine
 from sqlmodel import Session, select, func
 
 
 class FeedbackDAO:
-    def get_id_wbuffer(self):
+    def get_id_wbuffer(self) -> list:
         with Session(engine) as session:
             try:
-                buffer_size : float = 15
-                buffer = func.ST_AsText(func.ST_Transform(func.ST_Envelope(func.ST_Buffer(Pred.geometry, buffer_size)), 4326))
+                buffer_size: float = 15
+                buffer = func.ST_AsText(
+                    func.ST_Transform(
+                        func.ST_Envelope(func.ST_Buffer(Pred.geometry, buffer_size)),
+                        4326,
+                    )
+                )
                 statement = select(Feedback.id_pred, buffer).join(Pred, isouter=True)
                 res = session.exec(statement)
                 return res.all()
-            except Exception as e:
+            except Exception:
                 session.rollback()
 
-    
-    def get_all_id_geometry(self):
+    def get_all_id_geometry(self) -> list:
         with Session(engine) as session:
             try:
                 geometry = func.ST_AsText(Pred.geometry)
-                statement = select(Feedback.id_pred, geometry).join(Pred, isouter=True).order_by(func.random()).limit(50)
+                statement = (
+                    select(Feedback.id_pred, geometry)
+                    .join(Pred, isouter=True)
+                    .order_by(func.random())
+                    .limit(50)
+                )
                 res = session.exec(statement).all()
                 return res
             except:
@@ -32,13 +41,13 @@ class FeedbackDAO:
             try:
                 statement = select(Feedback).where(Feedback.id_pred == id)
                 res = session.exec(statement).one()
-                if column == 'yes':
+                if column == "yes":
                     res.yes += 1
                 else:
                     res.no += 1
                 session.add(res)
                 session.commit()
-            except Exception as e:
+            except Exception:
                 session.rollback()
                 raise
 
@@ -51,4 +60,3 @@ if __name__ == "__main__":
     q = FeedbackDAO().get_id_wbuffer()
     ed = perf_counter()
     print(ed - st)
-

@@ -25,7 +25,7 @@ services:
     depends_on: 
       - db
     volumes:
-      - .streamlit/secrets.toml:/app/.streamlit/secrets.toml
+      - .:/app
 
 volumes:
   postgres_data:  # Named volume for persistent DB storage
