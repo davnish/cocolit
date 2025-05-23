@@ -2,6 +2,17 @@
 name = "cocolit"
 version = "0.1.0"
 description = "lets detect some coconuts!"
+dependencies = [
+    "pygdal==3.2.2.*",
+    "geoalchemy2>=0.17.1",
+    "geopandas>=1.0.1",
+    "onnxruntime>=1.22.0",
+    "psycopg2-binary>=2.9.10",
+    "rasvec>=0.1.5",
+    "sqlmodel>=0.0.24",
+    "streamlit-folium>=0.25.0",
+    "ultralytics>=8.3.143",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
