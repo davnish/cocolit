@@ -1,0 +1,16 @@
+name: base
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.9
+  - gdal==3.2.2
+  - sqlmodel
+  - pip
+  - pip:
+    - rasterio==1.3.5
+    - rasvec
+    - geoalchemy2
+    - streamlit-folium
+    - psycopg2-binary
+    - ultralytics
