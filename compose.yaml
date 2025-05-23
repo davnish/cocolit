@@ -13,11 +13,10 @@ services:
       - postgres_data:/var/lib/postgresql/data  # Persist data between container restarts
 
 
-
   streamlit:
     build: 
       context: .
-      dockerfile: streamDock
+      dockerfile: Dockerfile.test.gdal3.2.2
     container_name: cocolit
     restart: always
     ports: 
@@ -26,6 +25,7 @@ services:
       - db
     volumes:
       - .:/app
+    entrypoint: streamlit run main.py
 
 volumes:
   postgres_data:  # Named volume for persistent DB storage

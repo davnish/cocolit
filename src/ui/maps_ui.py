@@ -6,19 +6,22 @@ from configs.logger import setup_logger
 from pipelines.inference import InferencePipeline
 from folium.plugins import Geocoder
 import geopandas as gpd
+from src.exceptions.exceptions import NotSavedToDatabase
 import requests
+from src.dal.preds import preds_bbox_to_database
+
 
 
 logger = setup_logger("map_ui", "map_ui.log")
 
 
 @st.cache_resource
-def load_inference(model_path):
+def load_inference(model_path) -> InferencePipeline:
     inference = InferencePipeline(model_path)
     return inference
 
 
-def get_map(config):
+def get_map(config) -> tuple[folium.Map, folium.FeatureGroup]:
     m = folium.Map(tiles=None, zoom_control=False)
 
     Geocoder(
@@ -57,7 +60,7 @@ def get_map(config):
     return m, layer_control
 
 
-def init_boxes(all_drawings):
+def init_boxes(all_drawings)->None:
     """
     - we are generating the "bboxes" in st.session_state
     which will collect all the bbox from the folium map
@@ -75,12 +78,12 @@ def init_boxes(all_drawings):
             st.rerun()
 
 
-def add_predictions(config):
+def add_predictions(configs:dict) -> folium.FeatureGroup:
     """
     If the predictions in `st.session_state['boxes']` not None the it will
     add all prediction to a feature group `pt`
     """
-    pt = folium.FeatureGroup(name=config["map_ui"]["layergroup_name"])
+    pt = folium.FeatureGroup(name=configs["map_ui"]["layergroup_name"])
 
     if "bboxes" in st.session_state and st.session_state["bboxes"]:
         try:
@@ -90,14 +93,14 @@ def add_predictions(config):
                         bbox.preds,
                         name="CocoTrees",
                         marker=folium.Circle(
-                            radius=config["map_ui"]["prediction"]["radius"],
-                            fill_color=config["map_ui"]["prediction"]["fill_color"],
-                            fill_opacity=config["map_ui"]["prediction"]["fill_opacity"],
-                            color=config["map_ui"]["prediction"]["color"],
-                            weight=config["map_ui"]["prediction"]["weight"],
+                            radius=configs["map_ui"]["prediction"]["radius"],
+                            fill_color=configs["map_ui"]["prediction"]["fill_color"],
+                            fill_opacity=configs["map_ui"]["prediction"]["fill_opacity"],
+                            color=configs["map_ui"]["prediction"]["color"],
+                            weight=configs["map_ui"]["prediction"]["weight"],
                         ),
                         highlight_function=lambda x: {
-                            "fillOpacity": config["map_ui"]["prediction"]["highlight"][
+                            "fillOpacity": configs["map_ui"]["prediction"]["highlight"][
                                 "fill_opacity"
                             ]
                         },
@@ -111,7 +114,7 @@ def add_predictions(config):
     return pt
 
 
-def get_inference(all_drawings: dict, inference: InferencePipeline, conn: bool):
+def get_inference(all_drawings: dict, inference: InferencePipeline, conn: bool) -> None:
     if all_drawings is not None and len(all_drawings) > 0:
         if (
             len(st.session_state["bboxes"]) > 0
@@ -119,13 +122,24 @@ def get_inference(all_drawings: dict, inference: InferencePipeline, conn: bool):
         ):
             pass
         else:
-            bbox = inference.run(BBox(all_drawings[-1]), conn)
+            bbox = inference.run(BBox(all_drawings[-1]))
+
+            if bbox.preds is not None:
+                if conn:
+                    try:
+                        preds_bbox_to_database(bbox.gdf, bbox.preds)
+                        logger.info("Data Saved to database")
+                    except Exception:
+                        raise NotSavedToDatabase
+            else:
+                logger.info("No Predictions found")
+
             st.session_state["bboxes"].append(bbox)
             logger.info("Get Inference : Rerun")
             st.rerun()
 
 
-def show_metrics():
+def show_metrics() -> None:
     area = 0
     cnt = 0
     if "bboxes" in st.session_state and len(st.session_state["bboxes"]) > 0:
@@ -146,17 +160,3 @@ def show_metrics():
             "Total Density of Coconutes in Selected Area(per Km²)", f"{density:.2f}"
         )
 
-
-def get_respose():
-    url = "http://127.0.0.1:8000/predict"
-
-    json = {
-        "xmin": 80.00295370817186,
-        "ymin": 7.5521705091205416,
-        "xmax": 80.00529795885087,
-        "ymax": 7.553680785799453,
-    }
-
-    respose = requests.post(url, json=json)
-    data = respose.json()["predictions"]
-    gdf = gpd.GeoDataFrame.from_features(data["features"])

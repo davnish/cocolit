@@ -25,3 +25,10 @@ class NoQueue(Exception):
     def __init__(self, message: str = "No Queue. Database returned no Queue") -> None:
         self.message = message
         super().__init__(self.message)
+
+class NotSavedToDatabase(Exception):
+    """Raised when data doen't get registered to Database"""
+
+    def __init__(self, message: str = "Data not saved to database") -> None:
+        self.message = message
+        super().__init__(self.message)

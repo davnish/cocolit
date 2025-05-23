@@ -7,19 +7,19 @@ import random
 st.set_page_config(layout="wide")
 
 from src.database.connection import engine
-from configs.logger import setup_logger
+from configs.logger import setup_logger, get_smtp_logger
 from src.ui.feedback_ui import init_feedback
 from src.ui.maps_ui import get_map, init_boxes, add_predictions
 from src.ui.maps_ui import get_inference, show_metrics, load_inference
 from src.ui.statistics_ui import init_statistics
-from src.exceptions.exceptions import BBoxTooBig, BBoxTooSmall
+from src.exceptions.exceptions import BBoxTooBig, BBoxTooSmall, NotSavedToDatabase
 
 with open("static/style.css") as f:
     st.write(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 
 @st.cache_data
-def read_config():
+def read_config()->dict:
     with open("configs/config.yml", "r") as f:
         config = yaml.safe_load(f)
         return config
@@ -28,10 +28,12 @@ def read_config():
 config = read_config()
 
 logger = setup_logger("main", "main.log")
+smtp_logger = get_smtp_logger("main_SMTP")
+
 torch.classes.__path__ = []
 
 
-def set_random_center():
+def set_random_center()->None:
     centers = config["map_ui"]["centers"]
     idx = random.choice(range(len(centers)))
     st.session_state["center"] = centers[idx]
@@ -50,7 +52,7 @@ if "conn" not in st.session_state:
             st.session_state["conn"] = True
     except Exception as e:
         st.session_state["conn"] = False
-        logger.fatal(f"Database Server Down: {e}")
+        smtp_logger.fatal(f"Database Server Down: {e}")
 
 if "show_feedback" not in st.session_state:
     st.session_state["show_feedback"] = True
@@ -122,9 +124,11 @@ with helpers[2]:
         st.warning("Bounding Box too small, increase the Size of bounding box")
     except BBoxTooBig:
         st.warning("Bounding Box too, big, decrease the size of bounding box")
-    except Exception:
-        st.error("There is some Internal Error. Please Referesh the app. :persevere:")
-        logger.fatal(BBoxTooSmall, exc_info=True)
+    except NotSavedToDatabase:
+        smtp_logger.fatal("Data not saved to database.", exc_info=True)
+    except Exception as e:
+        st.error("There is some Internal Error. Please Refresh the app. :persevere:")
+        smtp_logger.fatal(e, exc_info=True)
 
 
 if st.session_state["conn"]:
@@ -133,7 +137,7 @@ if st.session_state["conn"]:
             init_statistics(config)
         except Exception as e:
             st.session_state["show_stats"] = False
-            logger.fatal(e, exc_info=True)
+            smtp_logger.fatal(e, exc_info=True)
 
     if st.session_state["show_feedback"]:
         try:
@@ -144,4 +148,4 @@ if st.session_state["conn"]:
             init_feedback(config)
         except Exception as e:
             st.session_state["show_feedback"] = False
-            logger.fatal(e, exc_info=True)
+            smtp_logger.fatal(e, exc_info=True)

@@ -64,7 +64,7 @@ class BBox:
         """Check if the bounding box is valid."""
 
         # if bbox area is more than 10 km2
-        if self.area > 10e6:
+        if self.area > 5e6:
             raise BBoxTooBig
         # if bbox area is less than 25 m2
         elif self.area < 625:
@@ -122,22 +122,3 @@ class BBox:
                     preds = pd.concat([preds, pred], ignore_index=True)
 
         return preds
-
-
-if __name__ == "__main__":
-    data = {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Polygon",
-            "coordinates": [
-                [
-                    [-85.078125, 38.61687],
-                    [-85.078125, 41.771312],
-                    [-81.430664, 41.771312],
-                    [-81.430664, 38.61687],
-                    [-85.078125, 38.61687],
-                ]
-            ],
-        },
-    }

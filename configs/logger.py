@@ -3,6 +3,27 @@ import logging.handlers
 import streamlit as st
 import os
 
+def get_smtp_logger(name: str, level: int = logging.ERROR) -> logging.Logger:
+    logger = logging.getLogger(name)
+    logger.setLevel(level)
+
+    if not logger.handlers:
+        # Shared Warning SMTP logger
+        smtp_handler = logging.handlers.SMTPHandler(
+            mailhost=("smtp.gmail.com", 587),
+            fromaddr=st.secrets.smpt["fromaddr"],
+            toaddrs=st.secrets.smpt["toaddrs"],
+            subject="Application Error",
+            credentials=st.secrets.smpt["credentials"],
+            secure=(),
+        )
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
+        smtp_handler.setLevel(level)
+        smtp_handler.setFormatter(formatter)
+        logger.addHandler(smtp_handler)
+    return logger
 
 def setup_logger(name: str, logfile: str, level: int = logging.DEBUG) -> logging.Logger:
     """
@@ -35,29 +56,17 @@ def setup_logger(name: str, logfile: str, level: int = logging.DEBUG) -> logging
         debug_handler = logging.FileHandler(os.path.join(log_dir, "debug.log"))
         debug_handler.setLevel(logging.DEBUG)
 
-        # Shared Warning SMTP logger
-        smtp_handler = logging.handlers.SMTPHandler(
-            mailhost=("smtp.gmail.com", 587),
-            fromaddr=st.secrets.smpt["fromaddr"],
-            toaddrs=st.secrets.smpt["toaddrs"],
-            subject="Application Error",
-            credentials=st.secrets.smpt["credentials"],
-            secure=(),
-        )
-        smtp_handler.setLevel(logging.FATAL)
-
         # Common formatter
         formatter = logging.Formatter(
             "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
         )
+
         file_handler.setFormatter(formatter)
         error_handler.setFormatter(formatter)
-        smtp_handler.setFormatter(formatter)
 
         logger.addHandler(file_handler)
         logger.addHandler(error_handler)
         logger.addHandler(debug_handler)
-        logger.addHandler(smtp_handler)
 
         # Optional: Also log to console
         console_handler = logging.StreamHandler()

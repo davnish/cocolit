@@ -1,8 +1,8 @@
 FROM mambaorg/micromamba:1.5.1
 
-USER root
-
 ARG MAMBA_DOCKERFILE_ACTIVATE=1
+
+USER root
 
 RUN apt-get update && apt-get install -y \
     build-essential \
@@ -18,14 +18,19 @@ RUN micromamba install -c conda-forge \
     pip \
     -y
 
-
 WORKDIR /app
-COPY . /app
 
-RUN pip install --no-cache-dir uv
+COPY requirements.txt /app/
 
-RUN uv pip install --no-cache-dir -r requirements.txt --system
+RUN pip install --no-cache-dir uv && \
+    uv pip install --no-cache-dir -r requirements.txt --system && \
+    uv pip install --no-cache-dir pytest --system
 
-RUN uv pip install --no-cache-dir  pytest --system
+COPY src /app/src
+COPY test /app/test
+COPY pipelines /app/pipelines
+COPY models /app/models
+COPY pyproject.toml /app/
+COPY configs /app/configs
 
-ENTRYPOINT [ "micromamba", "run", "-n", "base", "pytest"  ]
+ENTRYPOINT [ "/usr/local/bin/_entrypoint.sh", "pytest"  ]
