@@ -5,4 +5,4 @@ ultralytics
 onnxruntime
 sqlmodel
 rasvec
-pygdal==3.2.2.*
+gdal==3.2.2.*
