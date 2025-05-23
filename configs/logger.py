@@ -23,6 +23,14 @@ def get_smtp_logger(name: str, level: int = logging.ERROR) -> logging.Logger:
         smtp_handler.setLevel(level)
         smtp_handler.setFormatter(formatter)
         logger.addHandler(smtp_handler)
+
+        # Optional: Also log to console
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.INFO)
+        console_handler.setFormatter(formatter)
+        logger.addHandler(console_handler)
+
+        
     return logger
 
 def setup_logger(name: str, logfile: str, level: int = logging.DEBUG) -> logging.Logger:
