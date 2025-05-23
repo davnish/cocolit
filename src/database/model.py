@@ -1,11 +1,12 @@
 from sqlmodel import SQLModel, Field, Column, Relationship
 from geoalchemy2 import Geometry
 from typing import Optional
+from typing import Union
 
 
 class BoundingBox(SQLModel, table=True):
     __table_args__ = {"extend_existing": True}
-    id: int | None = Field(default=None, primary_key=True)
+    id: Union[int, None] = Field(default=None, primary_key=True)
     datetime: str
     geometry: str = Field(sa_column=Column(Geometry("POLYGON", srid=3857)))
     preds: list["Pred"] = Relationship(back_populates="bbox")
@@ -16,7 +17,7 @@ class BoundingBox(SQLModel, table=True):
 
 class Pred(SQLModel, table=True):
     __table_args__ = {"extend_existing": True}
-    id: int | None = Field(default=None, primary_key=True)
+    id: Union[int, None] = Field(default=None, primary_key=True)
     id_bbox: int = Field(foreign_key="boundingbox.id", ondelete="CASCADE")
 
     conf: float
@@ -31,7 +32,7 @@ class Pred(SQLModel, table=True):
 
 class Feedback(SQLModel, table=True):
     __table_args__ = {"extend_existing": True}
-    id: int | None = Field(default=None, primary_key=True, index=True)
+    id: Union[int, None] = Field(default=None, primary_key=True, index=True)
     yes: int = Field(default=0)
     no: int = Field(default=0)
     id_pred: int = Field(foreign_key="pred.id", ondelete="CASCADE")

@@ -2,6 +2,7 @@ import PIL.Image
 from rasvec import tms_to_geotiff
 from pathlib import Path
 import PIL
+from typing import Union
 
 
 def TMStoGeoTIFF(
@@ -12,7 +13,7 @@ def TMStoGeoTIFF(
     overwrite: bool = True,
     quiet: bool = True,
     **kwargs: dict,
-) -> PIL.Image.Image | None:
+) -> Union[PIL.Image.Image, None]:
     return tms_to_geotiff(
         output=output.as_posix(),
         bbox=bbox,

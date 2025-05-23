@@ -3,6 +3,7 @@ from src.utils.download import TMStoGeoTIFF
 from src.data_struct.bbox import BBox
 from src.dal.preds import preds_bbox_to_database
 from configs.logger import setup_logger
+from typing import Union
 
 logger = setup_logger("inference", "inference.log")
 
@@ -14,7 +15,7 @@ class InferencePipeline:
     ) -> None:
         self.model = YOLO(model_path, task="detect")
 
-    def run(self, bbox: BBox, conn: bool | None = False) -> BBox | None:
+    def run(self, bbox: BBox, conn: Union[bool, None] = False) -> Union[BBox, None]:
         try:
             bbox.valid_bbox()
             logger.info("Processed and validated bbox")
@@ -75,6 +76,6 @@ if __name__ == "__main__":
         },
     }
     bbox = BBox(data)
-    inference = InferencePipeline(Path("models/best.pt"))
+    inference = InferencePipeline(Path("models/best.onnx"))
     bbox = inference.run(bbox)
     print(bbox.preds)

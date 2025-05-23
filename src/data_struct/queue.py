@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from src.dal.feedback import FeedbackDAO
 import geopandas as gpd
+from typing import Union
 
 
 @dataclass
@@ -29,7 +30,7 @@ class Queue:
     def enqueue(self, id_bound: list) -> None:
         self.id_bounds.append(id_bound)
 
-    def dequeue(self) -> int | None:
+    def dequeue(self) -> Union[int, None]:
         if self.id_bounds:
             return self.id_bounds.pop(0)
         return None

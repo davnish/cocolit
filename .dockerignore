@@ -38,3 +38,6 @@ data/*
 
 /mlruns
 .conda/
+.venv/
+env/
+.ruff_cache/

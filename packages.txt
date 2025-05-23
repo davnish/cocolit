@@ -1,5 +1,2 @@
 libgdal-dev
-libgdal-dev 
-libglib2.0-0 
-libgl1-mesa-glx
 libgl1 

@@ -11,6 +11,7 @@ from src.utils.PatchRaster import PatchRaster
 from pydantic import BaseModel
 from src.data_struct.getpath import GetPath
 from shapely.geometry import box
+from typing import Union
 
 
 class BBoxBounds(BaseModel):
@@ -26,7 +27,7 @@ class BBoxBounds(BaseModel):
 
 @dataclass
 class BBox:
-    data: dict | BBoxBounds
+    data: Union[dict, BBoxBounds]
     gdf: GeoDataFrame = field(init=False, default=None)
     area: float = field(init=False, default=0)
     bounds: int = field(init=False, default_factory=list)
@@ -81,7 +82,7 @@ class BBox:
             padding=True,
         )
 
-    def get_preds(self, res: list) -> GeoDataFrame | None:
+    def get_preds(self, res: list) -> Union[GeoDataFrame, None]:
         """
         Post Process output from the model
         """
