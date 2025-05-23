@@ -22,7 +22,7 @@ def preds_bbox_to_database(bbox: GeoDataFrame, preds: GeoDataFrame) -> None:
         session.commit()
 
 
-def read_data():
+def read_data()->tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]:
     query = "SELECT * FROM pred"
     pred = gpd.read_postgis(query, con=engine, crs=3857, geom_col="geometry").to_crs(
         4326

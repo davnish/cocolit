@@ -25,6 +25,8 @@ services:
       - db
     volumes:
       - .:/app
+    environment:
+      - local_database=postgresql://postgres:postgres@db/coconut_db
     entrypoint: streamlit run main.py
 
 volumes:
