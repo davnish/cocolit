@@ -204,3 +204,5 @@ secrets.toml
 
 !models/best.onnx
 !data/countries
+
+_environment.yml
