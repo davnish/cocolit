@@ -1,2 +1,4 @@
 libgdal-dev
 libgl1 
+gcc 
+g++
