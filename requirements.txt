@@ -7,4 +7,5 @@ ultralytics
 rasvec
 sqlmodel
 onnxruntime
+onnx
 rasterio==1.3.11
