@@ -1,18 +1,18 @@
-FROM python:3.10-slim-bullseye
+FROM python:3.12-slim-bullseye
 USER root
 
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
+WORKDIR /app
 
-RUN apt-get update && apt-get install -y \
-    libgdal-dev \
-    libgl1 \
+COPY packages.txt /app/packages.txt
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    $(grep -vE '^\s*#|^\s*$' /app/packages.txt) \
     gcc \
     g++ \
     && apt-get purge -y --auto-remove \
     && rm -rf /var/lib/apt/lists/*
-
-WORKDIR /app
 
 COPY requirements.txt /app/
 
