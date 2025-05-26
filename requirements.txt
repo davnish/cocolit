@@ -1,4 +1,5 @@
-pygdal==3.2.2.*
+numpy
+--find-links=https://girder.github.io/large_image_wheels gdal
 streamlit-folium
 psycopg2-binary
 geoalchemy2
@@ -6,4 +7,3 @@ ultralytics
 rasvec
 sqlmodel
 rasterio==1.3.11
-numpy
