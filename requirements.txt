@@ -1,9 +1,9 @@
-rasvec
+numpy
+gdal==3.2.2.*
 streamlit-folium
-sqlmodel
-pygdal==3.2.2.*
-ultralytics
-ensure
-geoalchemy2
 psycopg2-binary
-onnxruntime
+geoalchemy2
+ultralytics
+rasvec
+sqlmodel
+rasterio==1.3.11
