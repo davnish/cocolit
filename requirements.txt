@@ -1,5 +1,4 @@
-numpy
-gdal==3.2.2.*
+pygdal==3.2.2.*
 streamlit-folium
 psycopg2-binary
 geoalchemy2
@@ -7,3 +6,4 @@ ultralytics
 rasvec
 sqlmodel
 rasterio==1.3.11
+numpy
