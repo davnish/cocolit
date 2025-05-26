@@ -1,1 +1,3 @@
 libgl1 
+libgdal-dev
+gdal-bin
