@@ -16,8 +16,8 @@ learned alot while building this app :)
 - feedback (collecting data for retraining the model).
 - logging (with smtp handler to send alerts).
 - ORM (sqlmodel)
-- cloud based Database (Azure Postgres Databased used).
-- api (integration with FastAPI).
+- cloud based Database (Azure Postgres Database used).
+- api (integration with FastAPI, implementation done, currently not in use).
 
 ## architecture
 The architecture of this app is pretty simple. 
@@ -32,8 +32,6 @@ The architecture of this app is pretty simple.
 ERD diagram from DBeaver
 
 
-
-##
 
 # how to run
 
