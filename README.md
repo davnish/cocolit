@@ -32,6 +32,12 @@ The architecture of this app is pretty simple.
 ERD diagram from DBeaver
 
 
+## Current Limitations
+- Not very userfull, need to include a download button downloading model prediction.
+- cannot handle inference done by two session state at the same, I think should be solveable by use multiprocess approach.
+- uploading your desired area (for e.g shapefile) and showing and downloading the predictions.
+- Resource bounded limited to cpu, not able to support large sized inference.
+
 
 # how to run
 
