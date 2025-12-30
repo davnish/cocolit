@@ -28,12 +28,13 @@ class BBoxBounds(BaseModel):
 @dataclass
 class BBox:
     data: Union[dict, BBoxBounds]
-    gdf: GeoDataFrame = field(init=False, default=None)
-    area: float = field(init=False, default=0)
-    bounds: int = field(init=False, default_factory=list)
-    preds: GeoDataFrame = field(init=False, default=None)
-    path: GetPath = field(init=False, default=None)
-
+    # values to be initialized post creation
+    gdf: GeoDataFrame = field(init=False, default=None) # GeoDataFrame representation of the bbox
+    area: float = field(init=False, default=0) # Area of the bbox in square meters
+    bounds: int = field(init=False, default_factory=list) # Bounds of the bbox as [xmin, ymin, xmax, ymax]
+    preds: GeoDataFrame = field(init=False, default=None) # Predictions as GeoDataFrame
+    path: GetPath = field(init=False, default=None) # Paths for temporary storage
+ 
     def __post_init__(self) -> None:
         if isinstance(self.data, dict):
             self.gdf = self.geojson_to_gdf(self.data)

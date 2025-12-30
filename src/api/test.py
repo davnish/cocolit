@@ -2,7 +2,7 @@ import requests
 import geopandas as gpd
 
 
-def get_respose() -> None:
+def get_response() -> None:
     url = "http://127.0.0.1:8000/predict"
 
     json = {
@@ -12,6 +12,10 @@ def get_respose() -> None:
         "ymax": 7.553680785799453,
     }
 
-    respose = requests.post(url, json=json)
-    data = respose.json()["predictions"]
-    gpd.GeoDataFrame.from_features(data["features"])
+    response = requests.post(url, json=json)
+    data = response.json()["predictions"]
+    gdf = gpd.GeoDataFrame.from_features(data["features"])
+    return gdf
+
+if __name__ == "__main__":
+    gdf = get_response()

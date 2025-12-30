@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import FastAPI
 from src.data_struct.bbox import BBox, BBoxBounds
 from pipelines.inference import InferencePipeline
@@ -10,7 +11,6 @@ def read_config()-> dict:
     with open("configs/config.yml", "r") as f:
         config = yaml.safe_load(f)
         return config
-    
 
 config = read_config()
 
@@ -19,12 +19,17 @@ app = FastAPI()
 inference = InferencePipeline(config['model']['path'])
 
 @app.post("/predict")
-def inference_bbox(bboxbounds: BBoxBounds) -> ORJSONResponse:
+async def inference_bbox(bboxbounds: BBoxBounds) -> ORJSONResponse:
     bbox = BBox(bboxbounds)
-    preds = json.loads(inference.run(bbox).preds.to_json())
+    bbox = await asyncio.to_thread(inference.run, bbox) # Run in a separate thread to avoid blocking event loop
+    print(bbox.preds.to_json())
+    preds = json.loads(bbox.preds.to_json())
     return ORJSONResponse(content={"status": "success", "predictions": preds})
 
+@app.get("/health")
+def health_check():
+    return ORJSONResponse(content={"status": "ok"})
 
-if __name__ == "__main___":
-
-    pass
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("inference:app", host="127.0.0.1", port=8000, reload=True)

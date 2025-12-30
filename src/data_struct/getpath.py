@@ -7,9 +7,9 @@ import shutil
 @dataclass
 class GetPath:
     temp_name: str = "image"
-    dir: Path = field(init=False)
-    image_path: Path = field(init=False)
-    patched: Path = field(init=False)
+    dir: Path = field(init=False) # Temporary directory for storing files
+    image_path: Path = field(init=False) # Path to the downloaded image
+    patched: Path = field(init=False) # Path to the patched images (downloaded at path image_path) directory
 
     def __post_init__(self) -> None:
         dir = Path("data")
