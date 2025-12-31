@@ -12,12 +12,22 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data  # Persist data between container restarts
 
-
+  inference:
+    build: 
+      context: .
+      dockerfile: inference.Dockerfile
+    container_name: inference
+    restart: always
+    ports: 
+      - "8000:8000"
+    volumes:
+      - .:/app
+      
   streamlit:
     build: 
       context: .
-      dockerfile: Dockerfile.python
-    container_name: cocolit
+      dockerfile: streamlit.Dockerfile
+    container_name: streamlit
     restart: always
     ports: 
       - "8501:8501"

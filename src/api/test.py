@@ -18,4 +18,8 @@ def get_response() -> None:
     return gdf
 
 if __name__ == "__main__":
-    gdf = get_response()
+    # gdf = get_response()
+    # print(gdf)
+
+    array = {'type': 'Feature', 'properties': {}, 'geometry': {'type': 'Polygon', 'coordinates': [[[80.018299, 7.555792], [80.018299, 7.557355], [80.021324, 7.557355], [80.021324, 7.555792], [80.018299, 7.555792]]]}}
+    

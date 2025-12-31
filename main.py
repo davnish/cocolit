@@ -1,5 +1,5 @@
 import streamlit as st
-import torch
+# import torch
 from streamlit_folium import st_folium
 import yaml
 import random
@@ -8,9 +8,9 @@ st.set_page_config(layout="wide")
 
 from src.database.connection import engine
 from configs.logger import setup_logger, get_smtp_logger
-from src.ui.feedback_ui import init_feedback
+# from src.ui.feedback_ui import init_feedback
 from src.ui.maps_ui import get_map, init_boxes, add_predictions
-from src.ui.maps_ui import get_inference, show_metrics, load_inference
+from src.ui.maps_ui import get_inference, show_metrics
 from src.ui.statistics_ui import init_statistics
 from src.exceptions.exceptions import BBoxTooBig, BBoxTooSmall, NotSavedToDatabase
 
@@ -30,7 +30,7 @@ config = read_config()
 logger = setup_logger("main", "main.log")
 smtp_logger = get_smtp_logger("main_SMTP")
 
-torch.classes.__path__ = []
+# torch.classes.__path__ = []
 
 
 def set_random_center()->None:
@@ -60,7 +60,7 @@ if "show_feedback" not in st.session_state:
 if "show_stats" not in st.session_state:
     st.session_state["show_stats"] = True
 
-inference = load_inference(config["model"]["path"])
+# inference = load_inference(config["model"]["path"])
 
 st.title("Coco:blue[lit] :palm_tree:")
 st.write("Lets detect some coconuts! :sunglasses: ")
@@ -119,7 +119,8 @@ init_boxes(all_drawings)
 with helpers[2]:
     try:
         with st.spinner("Running Inference..", show_time=True):
-            get_inference(all_drawings, inference, st.session_state["conn"])
+            # print(all_drawings[-1])
+            get_inference(all_drawings, st.session_state["conn"])
     except BBoxTooSmall:
         st.warning("Bounding Box too small, increase the Size of bounding box")
     except BBoxTooBig:
@@ -139,13 +140,13 @@ if st.session_state["conn"]:
             st.session_state["show_stats"] = False
             smtp_logger.fatal(e, exc_info=True)
 
-    if st.session_state["show_feedback"]:
-        try:
-            st.header("Feedbacks :seedling:")
-            st.caption(
-                "Help the current model improve by giving suggestions. Can you recognize the below images as coconut trees."
-            )
-            init_feedback(config)
-        except Exception as e:
-            st.session_state["show_feedback"] = False
-            smtp_logger.fatal(e, exc_info=True)
+    # if st.session_state["show_feedback"]:
+    #     try:
+    #         st.header("Feedbacks :seedling:")
+    #         st.caption(
+    #             "Help the current model improve by giving suggestions. Can you recognize the below images as coconut trees."
+    #         )
+    #         init_feedback(config)
+    #     except Exception as e:
+    #         st.session_state["show_feedback"] = False
+    #         smtp_logger.fatal(e, exc_info=True)

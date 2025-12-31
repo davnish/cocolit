@@ -18,11 +18,14 @@ app = FastAPI()
 
 inference = InferencePipeline(config['model']['path'])
 
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to the Inference API"}
+
 @app.post("/predict")
 async def inference_bbox(bboxbounds: BBoxBounds) -> ORJSONResponse:
     bbox = BBox(bboxbounds)
     bbox = await asyncio.to_thread(inference.run, bbox) # Run in a separate thread to avoid blocking event loop
-    print(bbox.preds.to_json())
     preds = json.loads(bbox.preds.to_json())
     return ORJSONResponse(content={"status": "success", "predictions": preds})
 

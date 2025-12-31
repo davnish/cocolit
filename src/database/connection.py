@@ -1,4 +1,4 @@
-from sqlmodel import create_engine, SQLModel
+from sqlmodel import create_engine
 import streamlit as st
 import os
 from dotenv import load_dotenv

@@ -1,0 +1,14 @@
+--find-links=https://girder.github.io/large_image_wheels
+GDAL
+ultralytics
+rasvec
+sqlmodel>=0.0.31
+onnxruntime>=1.23.2
+onnx
+rasterio==1.3.11
+numpy==1.26.4
+scikit-image<0.23
+fastapi>=0.128.0
+orjson>=3.11.5
+python-dotenv>=1.2.1
+uvicorn>=0.40.0

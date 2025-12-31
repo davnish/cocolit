@@ -1,24 +1,25 @@
 import folium
 import streamlit as st
 from folium.plugins import Draw
-from src.data_struct.bbox import BBox
+from src.data_struct.bbox import BBox, BBoxBounds
 from configs.logger import setup_logger
-from pipelines.inference import InferencePipeline
+# from pipelines.inference import InferencePipeline
 from folium.plugins import Geocoder
 import geopandas as gpd
 from src.exceptions.exceptions import NotSavedToDatabase
 import requests
 from src.dal.preds import preds_bbox_to_database
+import os
 
 
 
 logger = setup_logger("map_ui", "map_ui.log")
 
 
-@st.cache_resource
-def load_inference(model_path) -> InferencePipeline:
-    inference = InferencePipeline(model_path)
-    return inference
+# @st.cache_resource
+# def load_inference(model_path) -> InferencePipeline:
+#     inference = InferencePipeline(model_path)
+#     return inference
 
 
 def get_map(config) -> tuple[folium.Map, folium.FeatureGroup]:
@@ -113,8 +114,14 @@ def add_predictions(configs:dict) -> folium.FeatureGroup:
             raise
     return pt
 
+def inference_request(bbox: BBox) -> gpd.GeoDataFrame:
+    url = os.environ.get("INFERENCE_URL")
+    response = requests.post(url, json=bbox.to_dict())
+    data = response.json()["predictions"]
+    gdf = gpd.GeoDataFrame.from_features(data["features"], crs="EPSG:3857")
+    return gdf
 
-def get_inference(all_drawings: dict, inference: InferencePipeline, conn: bool) -> None:
+def get_inference(all_drawings: dict, conn: bool) -> None:
     if all_drawings is not None and len(all_drawings) > 0:
         if (
             len(st.session_state["bboxes"]) > 0
@@ -122,7 +129,8 @@ def get_inference(all_drawings: dict, inference: InferencePipeline, conn: bool) 
         ):
             pass
         else:
-            bbox = inference.run(BBox(all_drawings[-1]))
+            bbox = BBox(all_drawings[-1])
+            bbox.preds = inference_request(bbox)
 
             if bbox.preds is not None:
                 if conn:

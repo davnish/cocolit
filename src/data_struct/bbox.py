@@ -23,7 +23,25 @@ class BBoxBounds(BaseModel):
     def to_list(self) -> list:
         """Return bounds as a list."""
         return [self.xmin, self.ymin, self.xmax, self.ymax]
-
+    
+    def to_bounds_dict(self) -> dict:
+        """Return bounds as a dictionary."""
+        return {
+            "xmin": self.xmin,
+            "ymin": self.ymin,
+            "xmax": self.xmax,
+            "ymax": self.ymax,
+        }
+    @classmethod
+    def from_geojson(cls, data: dict) -> "BBoxBounds":
+        geometry = shape(data["geometry"])
+        bounds = geometry.bounds
+        return cls(
+            xmin=bounds[0],
+            ymin=bounds[1],
+            xmax=bounds[2],
+            ymax=bounds[3],
+        )
 
 @dataclass
 class BBox:
@@ -123,3 +141,11 @@ class BBox:
                     preds = pd.concat([preds, pred], ignore_index=True)
 
         return preds
+
+    def to_dict(self) -> dict:
+        return {
+            'xmin': self.bounds[0],
+            'ymin': self.bounds[1],
+            'xmax': self.bounds[2],
+            'ymax': self.bounds[3],
+        }
