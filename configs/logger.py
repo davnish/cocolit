@@ -1,7 +1,9 @@
 import logging
 import logging.handlers
-import streamlit as st
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def get_smtp_logger(name: str, level: int = logging.ERROR) -> logging.Logger:
     logger = logging.getLogger(name)
@@ -11,10 +13,10 @@ def get_smtp_logger(name: str, level: int = logging.ERROR) -> logging.Logger:
         # Shared Warning SMTP logger
         smtp_handler = logging.handlers.SMTPHandler(
             mailhost=("smtp.gmail.com", 587),
-            fromaddr=st.secrets.smpt["fromaddr"],
-            toaddrs=st.secrets.smpt["toaddrs"],
+            fromaddr=os.environ["smtp_fromaddr"],
+            toaddrs=os.environ["smtp_toaddrs"],
             subject="Application Error",
-            credentials=st.secrets.smpt["credentials"],
+            credentials=os.environ["smtp_credentials"],
             secure=(),
         )
         formatter = logging.Formatter(

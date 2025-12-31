@@ -2,6 +2,15 @@
 name = "cocolit"
 version = "0.1.0"
 description = "lets detect some coconuts!"
+dependencies = [
+    "fastapi>=0.128.0",
+    "gdal>=3.12.1",
+    "onnxruntime>=1.23.2",
+    "orjson>=3.11.5",
+    "python-dotenv>=1.2.1",
+    "sqlmodel>=0.0.31",
+    "uvicorn>=0.40.0",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]

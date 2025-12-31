@@ -27,9 +27,8 @@ class InferencePipeline:
 
             res = self.model.predict(source=bbox.path.patched)
             logger.info("Inference done")
-
+            
             bbox.preds = bbox.get_preds(res)
-
             return bbox
 
         except:
