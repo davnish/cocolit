@@ -28,7 +28,12 @@ def read_config()->dict:
 config = read_config()
 
 logger = setup_logger("main", "main.log")
-smtp_logger = get_smtp_logger("main_SMTP")
+
+try:
+    smtp_logger = get_smtp_logger("main_SMTP")
+except Exception as e:
+    logger.fatal(f"SMTP Logger not working: {e}")
+    smtp_logger = logger
 
 # torch.classes.__path__ = []
 

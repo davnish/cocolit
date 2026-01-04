@@ -45,6 +45,8 @@ COPY src ./src
 COPY pipelines ./pipelines
 COPY configs ./configs
 COPY main.py ./main.py
+COPY static ./static
+COPY misc ./misc
 
 EXPOSE 8501
 
