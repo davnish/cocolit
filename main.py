@@ -48,8 +48,11 @@ if "zoom" not in st.session_state:
 
 if "conn" not in st.session_state:
     try:
-        with engine.connect() as conn:
-            st.session_state["conn"] = True
+        if engine:
+            with engine.connect() as conn:
+                st.session_state["conn"] = True
+        else:
+            st.session_state["conn"] = False
     except Exception as e:
         st.session_state["conn"] = False
         smtp_logger.fatal(f"Database Server Down: {e}")
