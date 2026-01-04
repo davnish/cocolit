@@ -14,10 +14,10 @@ def get_engine():
         DATABASE = os.environ["db_conn_database"]
         USERNAME = os.environ["db_conn_user"]
         PASSWORD = os.environ["db_conn_password"]
+        connection_string = f"postgresql://{USERNAME}:{PASSWORD}@{SERVER}/{DATABASE}"
     else:
         return None
     
-    connection_string = f"postgresql://{USERNAME}:{PASSWORD}@{SERVER}/{DATABASE}"
     engine = create_engine(connection_string)
     return engine
 

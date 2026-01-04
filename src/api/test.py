@@ -3,7 +3,7 @@ import geopandas as gpd
 
 
 def get_response() -> None:
-    url = "http://127.0.0.1:8000/predict"
+    url = "http://0.0.0.0:8000/predict"
 
     json = {
         "xmin": 80.00295370817186,
@@ -18,8 +18,9 @@ def get_response() -> None:
     return gdf
 
 if __name__ == "__main__":
-    # gdf = get_response()
-    # print(gdf)
+    gdf = get_response()
+    print(gdf)
 
-    array = {'type': 'Feature', 'properties': {}, 'geometry': {'type': 'Polygon', 'coordinates': [[[80.018299, 7.555792], [80.018299, 7.557355], [80.021324, 7.557355], [80.021324, 7.555792], [80.018299, 7.555792]]]}}
+    # example_geojson_
+    # array = {'type': 'Feature', 'properties': {}, 'geometry': {'type': 'Polygon', 'coordinates': [[[80.018299, 7.555792], [80.018299, 7.557355], [80.021324, 7.557355], [80.021324, 7.555792], [80.018299, 7.555792]]]}}
     
