@@ -10,7 +10,8 @@ ENV UV_COMPILE_BYTECODE=1 \
 WORKDIR /app
 
 # Install system dependencies + GDAL headers
-RUN --mount=type=cache,target=/var/cache/apt \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=bind,source=packages.txt,target=packages.txt \
     apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
@@ -27,7 +28,10 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # Stage 2: Final Runtime Image
 FROM python:3.11-slim-bookworm
 
+LABEL org.opencontainers.image.title="inference-server"
+LABEL org.opencontainers.image.description="inference-server"
 LABEL org.opencontainers.image.source="https://github.com/davnish/cocolit"
+LABEL org.opencontainers.image.licenses="MIT"
 
 # Install ONLY the runtime GDAL library (required for rasterio to run)
 RUN apt-get update && apt-get install -y --no-install-recommends \

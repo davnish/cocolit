@@ -22,7 +22,11 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # --- Stage 2: Final Runtime Image ---
 FROM python:3.11-slim-bookworm
 
+LABEL org.opencontainers.image.title="streamlit-frontend"
+LABEL org.opencontainers.image.description="Streamlit frontend"
 LABEL org.opencontainers.image.source="https://github.com/davnish/cocolit"
+LABEL org.opencontainers.image.licenses="MIT"
+
 
 ENV PYTHONUNBUFFERED=1 \
     PATH="/opt/venv/bin:$PATH"
@@ -44,4 +48,4 @@ COPY main.py ./main.py
 
 EXPOSE 8501
 
-CMD [ "streamlit", "run", "main.py" ]
+CMD [ "streamlit", "run", "main.py" "--server.port=8501", "--server.address=0.0.0.0"]
