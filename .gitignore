@@ -205,3 +205,15 @@ secrets.toml
 !data/countries
 
 _environment.yml
+
+# OpenTofu / Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+crash.log
+crash.*.log
+
+# SSH keys
+*.pem
+*.key

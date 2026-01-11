@@ -37,7 +37,10 @@ services:
       - .:/app
     environment:
       - local_database=postgresql://postgres:postgres@db/coconut_db
+      - INFERENCE_URL=http://inference:8000/predict
     entrypoint: streamlit run main.py
+
+    
 
 volumes:
   postgres_data:  # Named volume for persistent DB storage

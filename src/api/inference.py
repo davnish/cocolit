@@ -1,3 +1,4 @@
+from osgeo import gdal
 import asyncio
 from fastapi import FastAPI
 from src.data_struct.bbox import BBox, BBoxBounds

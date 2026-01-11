@@ -3,7 +3,7 @@ import geopandas as gpd
 
 
 def get_response() -> None:
-    url = "http://0.0.0.0:8000/predict"
+    url = "http://127.0.0.1:8000/predict"
 
     json = {
         "xmin": 80.00295370817186,

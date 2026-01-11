@@ -10,10 +10,13 @@ from src.exceptions.exceptions import NotSavedToDatabase
 import requests
 from src.dal.preds import preds_bbox_to_database
 import os
+from dotenv import load_dotenv
 
-
+load_dotenv()
 
 logger = setup_logger("map_ui", "map_ui.log")
+
+
 
 
 # @st.cache_resource

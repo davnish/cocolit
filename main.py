@@ -79,7 +79,7 @@ st.caption(
             For guidance on getting started, tap 'Help?' below for a visual walkthrough."
 )
 
-helpers = st.columns([0.8, 1, 7])
+helpers = st.columns([1, 1, 7])
 with helpers[0]:
     with st.popover("Help? :hugging_face:"):
         guides = st.columns(2)
