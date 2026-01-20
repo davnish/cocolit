@@ -1,3 +1,5 @@
+> [!NOTE]
+This app is under active development and has gone through major changes. For now, This readme does not fully reflect the current development and the infra. This will soon be updated.  
 # cocolit 🌴
 
 This app detects coconut trees over google satellite imagery.
