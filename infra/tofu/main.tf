@@ -60,6 +60,15 @@ resource "aws_security_group" "sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  # workers to node
+  ingress {
+  description = "Kusudobernetes API"
+  from_port   = 6443
+  to_port     = 6443
+  protocol    = "tcp"
+  self        = true
+}
+
   # Kubelet
   ingress {
     description     = "Kubelet"
@@ -96,7 +105,7 @@ resource "aws_subnet" "cocolit_subnet_public"  {
   availability_zone = data.aws_availability_zones.available.names[0]
   map_public_ip_on_launch = true
   tags = {
-    Name = "cocolit-public-sg"
+    Name = "cocolit-public-subnet"
   }
 }
 
@@ -105,7 +114,13 @@ resource "aws_instance" "control_plane" {
   ami = data.aws_ami.amazon_linux.id
   vpc_security_group_ids = [aws_security_group.sg.id]
   subnet_id = aws_subnet.cocolit_subnet_public.id
-  instance_type = "t3.micro"
+  instance_type = "t3.small"
+
+  user_data = <<-EOF
+#!/bin/bash
+curl -sfL https://get.k3s.io | \
+  INSTALL_K3S_SKIP_SELINUX_RPM=true sh -
+EOF
 
   root_block_device {
     volume_size = 20
@@ -125,4 +140,52 @@ resource "aws_route_table_association" "public_subnet_assoc" {
 resource "aws_eip_association" "control_plane_eip_assoc" {
   instance_id   = aws_instance.control_plane.id
   allocation_id = aws_eip.control_plane_eip.id
+}
+
+resource "null_resource" "fetch_k3s_token" {
+  depends_on = [aws_instance.control_plane, aws_eip_association.control_plane_eip_assoc]
+
+  connection {
+    type        = "ssh"
+    user        = "ec2-user"
+    host        = aws_eip.control_plane_eip.public_ip
+    private_key = file(var.ssh_private_key_path)
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "timeout 300 bash -c 'sudo until [ -f /var/lib/rancher/k3s/server/node-token ]; do sleep 5; done'",
+      "sudo cat /var/lib/rancher/k3s/server/node-token > /tmp/k3s_token"
+    ]
+  }
+}
+
+
+data "external" "k3s_token" {
+  depends_on = [null_resource.fetch_k3s_token]
+
+  program = [
+    "bash",
+    "-c",
+    "ssh -i ${var.ssh_private_key_path} ec2-user@${aws_eip.control_plane_eip.public_ip} 'cat /tmp/k3s_token' 2>/dev/null | awk '{print \"{\\\"token\\\":\\\"\" $0 \"\\\"}\"}'"
+  ]
+}
+
+resource "aws_instance" "worker" {
+  count = 2
+
+  key_name               = "cocolit-root"
+  ami                    = data.aws_ami.amazon_linux.id
+  instance_type          = "t3.micro"
+  subnet_id              = aws_subnet.cocolit_subnet_public.id
+  vpc_security_group_ids = [aws_security_group.sg.id]
+
+  user_data = templatefile("${path.module}/worker-init.sh", {
+    master_ip = aws_instance.control_plane.private_ip
+    token     = data.external.k3s_token.result.token
+  })
+
+  tags = {
+    Name = "cocolit-worker-${count.index}"
+  }
 }
