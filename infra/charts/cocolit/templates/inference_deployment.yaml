@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "cocolit.fullname" . }}-inference-server
+  labels:
+    project: cocolit
+spec:
+  replicas: {{ .Values.inference.replicaCount }}
+  selector:
+    matchLabels:
+      app: inference-server
+  template:
+    metadata:
+      labels:
+        app: inference-server
+    spec:
+      containers:
+      - name: inference-server
+        image: "{{ .Values.inference.image.repository}}:{{ .Values.inference.image.tag }}"
+        ports:
+        - containerPort: 8000
+

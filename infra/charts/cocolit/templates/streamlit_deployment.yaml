@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "cocolit.fullname" . }}-streamlit-deployment
+  labels:
+    project: cocolit
+spec:
+  replicas: {{ .Values.streamlit.replicaCount }}
+  selector:
+    matchLabels:
+      app: streamlit-server
+  template:
+    metadata:
+      labels:
+        app: streamlit-server
+    spec:
+      containers:
+      - name: streamlit-server
+        image: "{{ .Values.streamlit.image.repository }}:{{ .Values.streamlit.image.tag }}"
+        ports:
+        - containerPort: 8501
+        env:
+          - name: INFERENCE_URL
+            value: "http://inference-service/predict" 

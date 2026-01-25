@@ -1,0 +1,14 @@
+# inference-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+
+  name: {{ include "cocolit.fullname" . }}-inference-service
+spec:
+  selector:
+    app: {{ .Values.inferenceService.selector.app }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.inferenceService.ports.port }}         # Port Streamlit will call
+      targetPort: {{ .Values.inferenceService.ports.targetport }}  # Port your inference app listens on
+  type: {{ .Values.inferenceService.ports.type }}     
