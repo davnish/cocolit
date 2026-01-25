@@ -49,7 +49,7 @@ ingress:
   name: streamlit-ingress
   className: traefik
   host: cocolit.prithvilabs.com
-  serviceName: streamlit-service
+  serviceName: cocolit-streamlit-service
   servicePort: 80
   tlsSecret: streamlit-tls
   clusterIssuer: letsencrypt-prod
