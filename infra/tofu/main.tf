@@ -123,7 +123,7 @@ curl -sfL https://get.k3s.io | \
 EOF
 
   root_block_device {
-    volume_size = 20
+    volume_size = 60
     volume_type = "gp3"
   }
   tags = {
