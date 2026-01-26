@@ -4,8 +4,8 @@ metadata:
   name: {{ include "cocolit.fullname" . }}-streamlit-service
 spec:
   selector:
-    app: {{ .Values.inferenceService.selector.app }} 
+    app: {{ .Values.streamlitService.selector.app }} 
   ports:
-    - port: {{ .Values.inferenceService.ports.port }}         # Port exposed to the Ingress
-      targetPort: {{ .Values.inferenceService.ports.targetPort }} # Port Streamlit is running on
-  type: {{ .Values.inferenceService.type }}
+    - port: {{ .Values.streamlitService.ports.port }}         # Port exposed to the Ingress
+      targetPort: {{ .Values.streamlitService.ports.targetPort }} # Port Streamlit is running on
+  type: {{ .Values.streamlitService.type }}
