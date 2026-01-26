@@ -29,6 +29,7 @@ streamlitService:
     port: 80
     targetPort: 8501
     type: ClusterIP
+    
 inferenceService:
   selector:
     app: inference-server
@@ -36,7 +37,7 @@ inferenceService:
     port: 80
     targetPort: 8000
     type: ClusterIP
-    
+
 # clusterissuer
 clusterIssuer:
   name: letsencrypt-prod

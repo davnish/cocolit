@@ -21,4 +21,4 @@ spec:
         - containerPort: 8501
         env:
           - name: INFERENCE_URL
-            value: "http://inference-service/predict" 
+            value: "http://cocolit-inference-service/predict" 
