@@ -10,5 +10,5 @@ spec:
   ports:
     - protocol: TCP
       port: {{ .Values.inferenceService.ports.port }}         # Port Streamlit will call
-      targetPort: {{ .Values.inferenceService.ports.targetport }}  # Port your inference app listens on
+      targetPort: {{ .Values.inferenceService.ports.targetPort }}  # Port your inference app listens on
   type: {{ .Values.inferenceService.ports.type }}     
