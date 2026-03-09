@@ -55,3 +55,10 @@ ingress:
   servicePort: 80
   tlsSecret: streamlit-tls
   clusterIssuer: letsencrypt-prod
+
+# SMTP credentials
+smtp:
+  from: ""
+  to: ""
+  username: ""
+  password: ""
