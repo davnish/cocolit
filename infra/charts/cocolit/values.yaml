@@ -6,7 +6,7 @@ streamlit:
   replicaCount:  1
   image:
     repository: ghcr.io/davnish/streamlit-server
-    tag: 3e7d5d0
+    tag: 850dfd9
   service:
     ports: 8501
 
