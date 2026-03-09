@@ -22,3 +22,7 @@ spec:
         env:
           - name: INFERENCE_URL
             value: "http://cocolit-inference-service/predict" 
+
+        envFrom:
+          - secretRef:
+              name: smtp-credentials

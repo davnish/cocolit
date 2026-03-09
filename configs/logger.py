@@ -13,12 +13,16 @@ def get_smtp_logger(name: str, level: int = logging.ERROR) -> logging.Logger:
         # Shared Warning SMTP logger
         smtp_handler = logging.handlers.SMTPHandler(
             mailhost=("smtp.gmail.com", 587),
-            fromaddr=os.environ["smtp_fromaddr"],
-            toaddrs=os.environ["smtp_toaddrs"],
+            fromaddr=os.environ["SMTP_FROMADDR"],
+            toaddrs=[os.environ["SMTP_TOADDRS"]],
             subject="Application Error",
-            credentials=os.environ["smtp_credentials"],
+            credentials=(
+                os.environ["SMTP_USERNAME"],
+                os.environ["SMTP_PASSWORD"],
+            ),
             secure=(),
         )
+
         formatter = logging.Formatter(
             "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
         )
