@@ -26,7 +26,7 @@ jobs:
     # Login to GHCR
     - name: Login to GitHub Container Registry
       run: |
-        echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
     # Build docker image
     - name: Build Streamlit Image
