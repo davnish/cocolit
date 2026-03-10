@@ -25,13 +25,13 @@ spec:
           value: "http://cocolit-inference-service/predict" 
 
         - name: POSTGRES_HOST
-          value: {{ .Values.auth.host }}
+          value: {{ .Values.database.host }}
 
         - name: POSTGRES_USERNAME
-          key: {{ .Values.auth.username }}
+          key: {{ .Values.database.username }}
 
         - name: POSTGRES_DATABASE
-          key: {{ .Values.auth.database }}
+          key: {{ .Values.database.database }}
               
         - name: POSTGRES_PASSWORD
           valueFrom:

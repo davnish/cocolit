@@ -68,13 +68,15 @@ smtp:
 database:
   postgresPassword: ""
   password: ""
+  username: cocolit_user
+  database: cocolitdb
+  host: postgres-postgresql
 
 # Database auth
 auth:
   existingSecret: postgres-credentials
-  username: cocolit_user
-  database: cocolitdb
-  host: postgres-postgresql
+  username: {{ .Values.database.username }}
+  database: {{ .Values.database.database }}
   secretKeys:
     adminPasswordKey: postgres-password
     userPasswordKey: password
