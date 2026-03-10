@@ -5,6 +5,7 @@ on:
     paths:
       - "src/**"
       - ".github/workflows/ci_cd.yml"
+      - "infra/charts/cocolit/**"
 
 jobs:
   deploy:
