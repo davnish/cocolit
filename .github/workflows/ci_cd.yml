@@ -67,7 +67,10 @@ jobs:
     # Deploy via Helm
     - name: Deploy with Helm
       run: |
-        helm upgrade --install cocolit ./infra/charts/cocolit \
+        echo "${{ secrets.CREDENTIALS }}" > credentials.yaml
+
+        helm upgrade --install cocolit ./charts/cocolit \
           --namespace apps \
           --create-namespace \
+          -f credentials.yaml \
           --set streamlit.image.tag=${{ env.SHORT_SHA }}
