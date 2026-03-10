@@ -28,10 +28,10 @@ spec:
           value: {{ .Values.database.host }}
 
         - name: POSTGRES_USERNAME
-          key: {{ .Values.database.username }}
+          value: {{ .Values.database.username }}
 
         - name: POSTGRES_DATABASE
-          key: {{ .Values.database.database }}
+          value: {{ .Values.database.database }}
               
         - name: POSTGRES_PASSWORD
           valueFrom:
