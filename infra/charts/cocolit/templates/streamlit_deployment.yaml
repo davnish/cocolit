@@ -22,6 +22,8 @@ spec:
         env:
           - name: INFERENCE_URL
             value: "http://cocolit-inference-service/predict" 
+          - name: DB_HOST
+            value: {{ .Values.database.host }}
 
         envFrom:
           - secretRef:

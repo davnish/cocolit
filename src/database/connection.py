@@ -9,8 +9,8 @@ load_dotenv()
 def get_engine():
     if os.getenv("local_database"):
         connection_string = os.getenv("local_database")
-    elif os.environ.get("postgres-host"):
-        SERVER = os.environ["postgres-host"]
+    elif os.environ.get("DB_HOST"):
+        SERVER = os.environ["DB_HOST"]
         DATABASE = os.environ["postgres-database"]
         USERNAME = os.environ["postgres-user"]
         PASSWORD = os.environ["postgres-password"]

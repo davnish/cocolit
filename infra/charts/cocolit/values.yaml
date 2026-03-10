@@ -68,3 +68,4 @@ database:
   password: ""
   user: ""
   database: ""
+  host: postgres-postgresql.apps.svc.cluster.local
