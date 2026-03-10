@@ -27,8 +27,24 @@ spec:
         - name: POSTGRES_HOST
           value: {{ .Values.database.host }}
 
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: password
+
+        - name: POSTGRES_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: username
+
+        - name: POSTGRES_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: database
+              
         envFrom:
         - secretRef:
             name: smtp-credentials
-        - secretRef:
-            name: postgres-credentials
