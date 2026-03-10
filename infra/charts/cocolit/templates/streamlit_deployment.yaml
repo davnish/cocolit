@@ -19,12 +19,32 @@ spec:
         image: "{{ .Values.streamlit.image.repository }}:{{ .Values.streamlit.image.tag }}"
         ports:
         - containerPort: 8501
+        
         env:
-          - name: INFERENCE_URL
-            value: "http://cocolit-inference-service/predict" 
+        - name: INFERENCE_URL
+          value: "http://cocolit-inference-service/predict" 
 
-        envFrom:
-          - secretRef:
-              name: smtp-credentials
-          - secretRef:
+        - name: POSTGRES_HOST
+          value: {{ .Values.database.host }}
+
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
               name: postgres-credentials
+              key: postgres-password
+
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: postgres-user
+
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: postgres-database
+              
+        envFrom:
+        - secretRef:
+            name: smtp-credentials
