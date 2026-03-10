@@ -63,10 +63,18 @@ smtp:
   username: ""
   password: ""
 
-# Database credentials
+
+# Database credentials will be filled in by the credentials files, these values will be used in auth section
 database:
   postgresPassword: ""
-  username: ""
-  database: ""
   password: ""
+
+# Database auth
+auth:
+  existingSecret: postgres-credentials
+  username: cocolit_user
+  database: cocolitdb
   host: postgres-postgresql
+  secretKeys:
+    adminPasswordKey: postgres-password
+    userPasswordKey: password
