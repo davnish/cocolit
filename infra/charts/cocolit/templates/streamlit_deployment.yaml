@@ -31,19 +31,19 @@ spec:
           valueFrom:
             secretKeyRef:
               name: postgres-credentials
-              key: postgres-password
+              key: password
 
         - name: POSTGRES_USER
           valueFrom:
             secretKeyRef:
               name: postgres-credentials
-              key: postgres-user
+              key: username
 
         - name: POSTGRES_DB
           valueFrom:
             secretKeyRef:
               name: postgres-credentials
-              key: postgres-database
+              key: database
               
         envFrom:
         - secretRef:

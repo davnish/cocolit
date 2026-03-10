@@ -65,7 +65,8 @@ smtp:
 
 # Database credentials
 database:
-  password: ""
-  user: ""
+  postgresPassword: ""
+  username: ""
   database: ""
+  password: ""
   host: postgres-postgresql
