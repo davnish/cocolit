@@ -75,8 +75,8 @@ database:
 # Database auth
 auth:
   existingSecret: postgres-credentials
-  username: {{ .Values.database.username }}
-  database: {{ .Values.database.database }}
+  username: cocolit_user
+  database: cocolitdb
   secretKeys:
     adminPasswordKey: postgres-password
     userPasswordKey: password
