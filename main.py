@@ -60,6 +60,7 @@ if "conn" not in st.session_state:
             st.session_state["conn"] = False
     except Exception as e:
         st.session_state["conn"] = False
+        logger.fatal(f"Database Server Down: {e}")
         smtp_logger.fatal(f"Database Server Down: {e}")
 
 if "show_feedback" not in st.session_state:
