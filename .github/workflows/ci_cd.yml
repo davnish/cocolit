@@ -3,8 +3,8 @@ name: Build and Deploy Streamlit
 on:
   push:
     paths:
-      - "streamlit/**"
-      - ".github/workflows/deploy.yml"
+      - "src/**"
+      - ".github/workflows/ci_cd.yml"
 
 jobs:
   deploy:
