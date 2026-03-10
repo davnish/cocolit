@@ -62,3 +62,9 @@ smtp:
   to: ""
   username: ""
   password: ""
+
+# Database credentials
+database:
+  password: ""
+  user: ""
+  database: ""
