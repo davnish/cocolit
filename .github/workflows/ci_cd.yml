@@ -69,7 +69,7 @@ jobs:
       run: |
         echo "${{ secrets.CREDENTIALS }}" > credentials.yaml
 
-        helm upgrade --install cocolit ./charts/cocolit \
+        helm upgrade --install cocolit ./infra/charts/cocolit \
           --namespace apps \
           --create-namespace \
           -f credentials.yaml \
