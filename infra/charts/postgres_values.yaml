@@ -9,7 +9,7 @@ auth:
 image:
   registry: docker.io
   repository: bitnami/postgresql
-  tag: 16
+  tag: latest
 
 postgresqlSharedPreloadLibraries: "postgis"
 
