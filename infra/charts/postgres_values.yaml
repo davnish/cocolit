@@ -6,11 +6,10 @@ auth:
     adminPasswordKey: postgres-password
     userPasswordKey: password
 
-primary:
-  initdb:
-    scripts:
-      install_postgis.sh: |
-        apt-get update
-        apt-get install -y postgis postgresql-16-postgis-3
-      enable_postgis.sql: |
-        CREATE EXTENSION IF NOT EXISTS postgis;
+global:
+  security:
+    allowInsecureImages: true
+
+image:
+  repository: postgis/postgis
+  tag: "16-3.4"
