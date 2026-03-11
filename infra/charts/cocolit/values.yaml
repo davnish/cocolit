@@ -68,15 +68,6 @@ smtp:
 database:
   postgresPassword: ""
   password: ""
-  username: cocolit_user
-  database: cocolitdb
+  username: ""
+  database: ""
   host: postgres-postgresql
-
-# Database auth
-auth:
-  existingSecret: postgres-credentials
-  username: cocolit_user
-  database: cocolitdb
-  secretKeys:
-    adminPasswordKey: postgres-password
-    userPasswordKey: password

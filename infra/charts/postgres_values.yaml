@@ -1,0 +1,18 @@
+image:
+  registry: docker.io
+  repository: postgis/postgis
+  tag: "16-3.4"
+
+auth:
+  existingSecret: postgres-credentials
+  secretKeys:
+    adminPasswordKey: postgres-password
+    userPasswordKey: password
+    usernameKey: username
+    databaseKey: database
+
+primary:
+  initdb:
+    scripts:
+      postgis.sql: |
+        CREATE EXTENSION IF NOT EXISTS postgis;

@@ -13,13 +13,22 @@ spec:
 
         env:
         - name: POSTGRES_HOST
-          value: {{ .Values.database.host }}
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: host
 
         - name: POSTGRES_USERNAME
-          value: {{ .Values.database.username }}
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: username
 
         - name: POSTGRES_DATABASE
-          value: {{ .Values.database.database }}
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: database
               
         - name: POSTGRES_PASSWORD
           valueFrom:
