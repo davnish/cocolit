@@ -7,13 +7,13 @@ auth:
     userPasswordKey: password
 
 image:
-  repository: bitnami/postgresql
-  tag: 16-debian-12
-
-postgresqlSharedPreloadLibraries: "postgis"
+  repository: postgis/postgis
+  tag: 16-3.4
+  pullPolicy: IfNotPresent
 
 primary:
   initdb:
     scripts:
-      postgis.sql: |
+      00_postgis.sql: |
         CREATE EXTENSION IF NOT EXISTS postgis;
+        CREATE EXTENSION IF NOT EXISTS postgis_topology;
