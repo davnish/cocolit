@@ -70,4 +70,4 @@ database:
   password: ""
   username: ""
   database: ""
-  host: postgres-postgresql
+  host: postgis-cluster-rw
