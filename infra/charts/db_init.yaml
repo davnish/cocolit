@@ -13,10 +13,7 @@ spec:
 
         env:
         - name: POSTGRES_HOST
-          valueFrom:
-            secretKeyRef:
-              name: postgres-credentials
-              key: host
+          value: postgis-cluster-rw
 
         - name: POSTGRES_USERNAME
           valueFrom:
