@@ -6,10 +6,15 @@ auth:
     adminPasswordKey: postgres-password
     userPasswordKey: password
 
-global:
-  security:
-    allowInsecureImages: true
-
 image:
-  repository: postgis/postgis
-  tag: "16-3.4"
+  registry: docker.io
+  repository: bitnami/postgresql
+  tag: 16
+
+postgresqlSharedPreloadLibraries: "postgis"
+
+primary:
+  initdb:
+    scripts:
+      postgis.sql: |
+        CREATE EXTENSION IF NOT EXISTS postgis;
