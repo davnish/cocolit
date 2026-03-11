@@ -47,6 +47,7 @@ COPY configs ./configs
 COPY main.py ./main.py
 COPY static ./static
 COPY misc ./misc
+COPY data ./data
 
 EXPOSE 8501
 

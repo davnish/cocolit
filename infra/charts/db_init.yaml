@@ -4,6 +4,7 @@ metadata:
   name: cocolit-db-init
   namespace: apps
 spec:
+  ttlSecondsAfterFinished: 100
   template:
     spec:
       containers:
