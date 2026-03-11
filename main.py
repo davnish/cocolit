@@ -1,32 +1,23 @@
-import streamlit as st
-# import torch
-from streamlit_folium import st_folium
+from fastapi import FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 import yaml
-import random
-
-st.set_page_config(layout="wide")
-
-from src.database.connection import engine
 from configs.logger import setup_logger, get_smtp_logger
-# from src.ui.feedback_ui import init_feedback
-from src.ui.maps_ui import get_map, init_boxes, add_predictions
-from src.ui.maps_ui import get_inference, show_metrics
-from src.ui.statistics_ui import init_statistics
-from src.exceptions.exceptions import BBoxTooBig, BBoxTooSmall, NotSavedToDatabase
+from src.database.connection import engine
+from src.dal.preds import preds_bbox_to_database, read_data
+import os
+import requests
+import geopandas as gpd
+from src.data_struct.bbox import BBox
+import logging
 
-with open("static/style.css") as f:
-    st.write(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+app = FastAPI(title="Cocolit API")
 
-
-@st.cache_data
-def read_config()->dict:
+def read_config() -> dict:
     with open("configs/config.yml", "r") as f:
-        config = yaml.safe_load(f)
-        return config
-
+        return yaml.safe_load(f)
 
 config = read_config()
-
 logger = setup_logger("main", "main.log")
 
 try:
@@ -35,127 +26,93 @@ except Exception as e:
     logger.fatal(f"SMTP Logger not working: {e}")
     smtp_logger = logger
 
-# torch.classes.__path__ = []
+# Define Request model for Inference
+class InferenceRequest(BaseModel):
+    type: str
+    geometry: dict
+    properties: dict
 
+def inference_request(bbox: BBox) -> gpd.GeoDataFrame:
+    url = os.environ.get("INFERENCE_URL")
+    if not url:
+        raise ValueError("INFERENCE_URL not set in environment")
+    
+    response = requests.post(url, json=bbox.to_dict())
+    response.raise_for_status()
+    data = response.json()["predictions"]
+    gdf = gpd.GeoDataFrame.from_features(data["features"], crs="EPSG:3857")
+    return gdf
 
-def set_random_center()->None:
-    centers = config["map_ui"]["centers"]
-    idx = random.choice(range(len(centers)))
-    st.session_state["center"] = centers[idx]
-
-
-if "center" not in st.session_state:
-    st.session_state["center"] = config["map_ui"]["centers"][0]
-    st.session_state["location"] = config["map_ui"]["locations"][0]
-
-if "zoom" not in st.session_state:
-    st.session_state["zoom"] = config["map_ui"]["zoom"]
-
-if "conn" not in st.session_state:
+@app.post("/api/inference")
+async def run_inference(req: InferenceRequest):
     try:
+        # Reconstruct drawing dictionary format that map_ui expected
+        drawing = {
+            "type": req.type,
+            "geometry": req.geometry,
+            "properties": req.properties
+        }
+        
+        bbox = BBox(drawing)
+        preds_gdf = inference_request(bbox)
+        
+        # Save to database (assumes preds_bbox_to_database handles 3857)
         if engine:
-            with engine.connect() as conn:
-                st.session_state["conn"] = True
-        else:
-            st.session_state["conn"] = False
+            try:
+                preds_bbox_to_database(bbox.gdf, preds_gdf)
+            except Exception as e:
+                smtp_logger.fatal("Data not saved to database.", exc_info=True)
+                logger.error(f"DB Save Error: {e}")
+                
+        # Return GeoJSON feature collection of predictions in EPSG:4326 for Leaflet
+        preds_gdf_4326 = preds_gdf.to_crs("EPSG:4326")
+        return {"features": preds_gdf_4326.__geo_interface__["features"]}
+        
     except Exception as e:
-        st.session_state["conn"] = False
-        logger.fatal(f"Database Server Down: {e}")
-        smtp_logger.fatal(f"Database Server Down: {e}")
+        logger.error(f"Inference error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
 
-if "show_feedback" not in st.session_state:
-    st.session_state["show_feedback"] = True
 
-if "show_stats" not in st.session_state:
-    st.session_state["show_stats"] = True
-
-# inference = load_inference(config["model"]["path"])
-
-st.title("Coco:blue[lit] :palm_tree:")
-st.write("Lets detect some coconuts! :sunglasses: ")
-st.caption(
-    "The map is default centered on 'Divulgasanga, Sri Lanka', chosen for its high density of coconut trees, allowing for more effective model testing. \
-            To explore a new random location, click 'Next Place'. \
-            To search for a specific location, tap the '🔍' icon in the top right corner of the map.\
-            For guidance on getting started, tap 'Help?' below for a visual walkthrough."
-)
-
-helpers = st.columns([1, 1, 7])
-with helpers[0]:
-    with st.popover("Help? :hugging_face:"):
-        guides = st.columns(2)
-        with guides[0]:
-            st.subheader("Take a look at the video to get started :rocket:")
-            st.write(
-                """ 
-                - Click on the rectangle icon on the left side of the map.
-                - Drag along your interested region.
-                - And... Done! :dancer:
-                """
-            )
-
-        with guides[1]:
-            st.video(
-                config["map_ui"]["helper_vid"], autoplay=True, muted=True, loop=True
-            )
-
-with helpers[1]:
-    if st.button("Next Place", icon=":material/mood:"):
-        set_random_center()
-
-        logger.info("Shifting Center")
-
-m, layer_control = get_map(config)
-
-pt = add_predictions(config)
-
-with st.container():
-    output = st_folium(
-        m,
-        center=st.session_state["center"],
-        zoom=st.session_state["zoom"],
-        returned_objects=["all_drawings"],
-        feature_group_to_add=pt,
-        use_container_width=True,
-        layer_control=layer_control,
-    )
-    all_drawings = output["all_drawings"]
-
-show_metrics()
-
-init_boxes(all_drawings)
-
-with helpers[2]:
+@app.get("/api/statistics")
+async def get_statistics():
     try:
-        with st.spinner("Running Inference..", show_time=True):
-            # print(all_drawings[-1])
-            get_inference(all_drawings, st.session_state["conn"])
-    except BBoxTooSmall:
-        st.warning("Bounding Box too small, increase the Size of bounding box")
-    except BBoxTooBig:
-        st.warning("Bounding Box too, big, decrease the size of bounding box")
-    except NotSavedToDatabase:
-        smtp_logger.fatal("Data not saved to database.", exc_info=True)
+        pred, country = read_data()
+        
+        # Calculate heatmap data
+        pred["latitude"], pred["longitude"] = pred.geometry.y, pred.geometry.x
+        heat_data = [
+            {"lat": float(row.latitude), "lng": float(row.longitude)}
+            for _, row in pred.iterrows()
+        ]
+        
+        # Calculate country stats
+        locations = len(pred["id_bbox"].unique())
+        inter = pred.sjoin(country, how="left")
+        countries_cnt = inter.groupby("name").count()
+        
+        country_stats = []
+        for name, row in countries_cnt.iterrows():
+            if name: # omit nulls
+                country_stats.append({
+                    "country": str(name),
+                    "trees_detected": int(row["id"])
+                })
+            
+        total_trees = sum(c["trees_detected"] for c in country_stats)
+        
+        return {
+            "heatmap": heat_data,
+            "metrics": {
+                "locations_covered": int(locations),
+                "total_trees_detected": total_trees
+            },
+            "countries": country_stats,
+            "center": config["statistics_ui"]["center"],
+            "zoom": config["statistics_ui"]["zoom"]
+        }
     except Exception as e:
-        st.error("There is some Internal Error. Please Refresh the app. :persevere:")
-        smtp_logger.fatal(e, exc_info=True)
+        logger.error(f"Stats error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
 
-
-if st.session_state["conn"]:
-    if st.session_state["show_stats"]:
-        try:
-            init_statistics(config)
-        except Exception as e:
-            st.session_state["show_stats"] = False
-            smtp_logger.fatal(e, exc_info=True)
-
-    # if st.session_state["show_feedback"]:
-    #     try:
-    #         st.header("Feedbacks :seedling:")
-    #         st.caption(
-    #             "Help the current model improve by giving suggestions. Can you recognize the below images as coconut trees."
-    #         )
-    #         init_feedback(config)
-    #     except Exception as e:
-    #         st.session_state["show_feedback"] = False
-    #         smtp_logger.fatal(e, exc_info=True)
+# We mount static directory at the root to serve index.html directly
+app.mount("/", StaticFiles(directory="static", html=True), name="static")
