@@ -1,0 +1,30 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cocolit-db-init
+  namespace: apps
+spec:
+  template:
+    spec:
+      containers:
+      - name: db-init
+        image: ghcr.io/davnish/streamlit-server:2c6a521
+        command: ["python", "-m", "src.database.init_db"]
+
+        env:
+        - name: POSTGRES_HOST
+          value: {{ .Values.database.host }}
+
+        - name: POSTGRES_USERNAME
+          value: {{ .Values.database.username }}
+
+        - name: POSTGRES_DATABASE
+          value: {{ .Values.database.database }}
+              
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: password
+
+      restartPolicy: Never
