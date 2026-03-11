@@ -6,6 +6,7 @@ on:
       - "src/**"
       - ".github/workflows/ci_cd.yml"
       - "infra/charts/cocolit/**"
+      - "streamlit.Dockerfile"
 
 jobs:
   deploy:
