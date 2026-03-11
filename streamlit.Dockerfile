@@ -51,4 +51,4 @@ COPY data ./data
 
 EXPOSE 8501
 
-CMD [ "streamlit", "run", "main.py", "--server.port=8501", "--server.address=0.0.0.0"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8501"]
