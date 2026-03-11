@@ -1,7 +1,7 @@
 global:
   security:
     allowInsecureImages: true
-    
+
 auth:
   existingSecret: postgres-credentials
   username: cocolit_user
@@ -16,6 +16,27 @@ image:
   pullPolicy: IfNotPresent
 
 primary:
+  # 1. Map Bitnami variables to what the PostGIS image expects
+  extraEnvVars:
+    - name: POSTGRES_USER
+      value: "cocolit_user"
+    - name: POSTGRES_DB
+      value: "cocolitdb"
+    - name: POSTGRES_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: postgres-credentials
+          key: password
+  
+  # 2. Adjust security to let the PostGIS image initialize folders
+  podSecurityContext:
+    enabled: true
+    fsGroup: 0
+  containerSecurityContext:
+    enabled: true
+    runAsUser: 0
+    runAsNonRoot: false
+
   initdb:
     scripts:
       00_postgis.sql: |
