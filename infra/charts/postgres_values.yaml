@@ -6,11 +6,6 @@ auth:
     adminPasswordKey: postgres-password
     userPasswordKey: password
 
-image:
-  registry: docker.io
-  repository: bitnami/postgresql
-  tag: latest
-
 postgresqlSharedPreloadLibraries: "postgis"
 
 primary:
