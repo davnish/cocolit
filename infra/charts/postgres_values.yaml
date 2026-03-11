@@ -1,10 +1,10 @@
 auth:
   existingSecret: postgres-credentials
+  username: cocolit_user
+  database: cocolitdb
   secretKeys:
     adminPasswordKey: postgres-password
     userPasswordKey: password
-    usernameKey: username
-    databaseKey: database
 
 primary:
   initdb:
