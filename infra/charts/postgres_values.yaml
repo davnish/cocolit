@@ -16,3 +16,7 @@ primary:
     scripts:
       postgis.sql: |
         CREATE EXTENSION IF NOT EXISTS postgis;
+
+global:
+  security:
+    allowInsecureImages: true
