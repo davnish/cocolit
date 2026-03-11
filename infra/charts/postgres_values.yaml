@@ -1,3 +1,7 @@
+global:
+  security:
+    allowInsecureImages: true
+    
 auth:
   existingSecret: postgres-credentials
   username: cocolit_user
