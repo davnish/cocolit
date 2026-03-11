@@ -1,0 +1,24 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgis-cluster
+  namespace: apps
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgis:16
+  
+  # Reference the same secret for both, or separate them if needed
+  superuserSecret:
+    name: postgres-credentials
+  
+  bootstrap:
+    initdb:
+      database: cocolitdb
+      owner: cocolit_user
+      secret:
+        name: postgres-credentials
+      postInitSQL:
+        - CREATE EXTENSION postgis;
+
+  storage:
+    size: 10Gi
