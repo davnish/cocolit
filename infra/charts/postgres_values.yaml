@@ -1,8 +1,3 @@
-image:
-  registry: docker.io
-  repository: postgis/postgis
-  tag: "16-3.4"
-
 auth:
   existingSecret: postgres-credentials
   secretKeys:
@@ -14,9 +9,8 @@ auth:
 primary:
   initdb:
     scripts:
-      postgis.sql: |
+      install_postgis.sh: |
+        apt-get update
+        apt-get install -y postgis postgresql-16-postgis-3
+      enable_postgis.sql: |
         CREATE EXTENSION IF NOT EXISTS postgis;
-
-global:
-  security:
-    allowInsecureImages: true
