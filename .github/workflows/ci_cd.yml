@@ -57,6 +57,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      actions: read
 
     steps:
 
@@ -99,6 +100,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      actions: read
 
     steps:
 
