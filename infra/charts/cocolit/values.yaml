@@ -17,6 +17,13 @@ inference:
     tag: 3e7d5d0
   service:
     ports: 8000
+  resources:
+    requests:
+      cpu: "400m"
+      memory: "700Mi"
+    limits:
+      cpu: "850m"
+      memory: "850Mi"
 
 
 

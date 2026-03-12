@@ -1,15 +1,57 @@
-name: Build and Deploy Streamlit
+name: Build Streamlit, Inference Images and Deploy
 
 on:
   push:
-    paths:
-      - "src/**"
-      - ".github/workflows/ci_cd.yml"
-      - "infra/charts/cocolit/**"
-      - "streamlit.Dockerfile"
+    branches:
+      - main
+      - frontend
 
 jobs:
-  deploy:
+
+# -------------------------------------------------
+# 1 Detect changes
+# -------------------------------------------------
+
+  detect_changes:
+    runs-on: ubuntu-latest
+
+    outputs:
+      streamlit: ${{ steps.filter.outputs.streamlit }}
+      inference: ${{ steps.filter.outputs.inference }}
+      helm: ${{ steps.filter.outputs.helm }}
+
+    steps:
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Detect changed components
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            streamlit:
+              - 'static/**'
+              - 'configs/**'
+              - 'streamlit.Dockerfile'
+
+            inference:
+              - 'src/**'
+              - 'pipelines/**'
+              - 'inference.Dockerfile'
+
+            helm:
+              - 'infra/charts/cocolit/**'
+              - ".github/workflows/ci_cd.yml"
+
+# -------------------------------------------------
+# 2 Build Streamlit Image
+# -------------------------------------------------
+
+  build_frontend:
+    needs: detect_changes
+    if: needs.detect_changes.outputs.streamlit == 'true'
+
     runs-on: ubuntu-latest
 
     permissions:
@@ -18,61 +60,120 @@ jobs:
 
     steps:
 
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-    # Generate short SHA
-    - name: Set short SHA
-      run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
+      - name: Set short SHA
+        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
 
-    # Setup Docker Buildx
-    - name: Setup Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    # Login to GHCR
-    - name: Login to GHCR
-      uses: docker/login-action@v3
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GHCR_TOKEN }}
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
 
-    # Build and push Docker image
-    - name: Build and Push Streamlit Image
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        file: streamlit.Dockerfile
-        push: true
-        tags: ghcr.io/davnish/streamlit-server:${{ env.SHORT_SHA }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+      - name: Build and Push Streamlit Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: frontend.Dockerfile
+          push: true
+          tags: ghcr.io/davnish/streamlit-server:${{ env.SHORT_SHA }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-    # Install kubectl
-    - name: Install kubectl
-      uses: azure/setup-kubectl@v4
+# -------------------------------------------------
+# 3 Build Inference Service Image
+# -------------------------------------------------
 
-    # Install Helm
-    - name: Install Helm
-      uses: azure/setup-helm@v4
+  build_inference:
+    needs: detect_changes
+    if: needs.detect_changes.outputs.inference == 'true'
 
-    # Configure kubeconfig
-    - name: Setup kubeconfig
-      run: |
-        mkdir -p ~/.kube
-        echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
+    runs-on: ubuntu-latest
 
-    # Verify cluster access
-    - name: Verify cluster connection
-      run: kubectl get nodes
+    permissions:
+      contents: read
+      packages: write
 
-    # Deploy via Helm
-    - name: Deploy with Helm
-      run: |
-        echo "${{ secrets.CREDENTIALS }}" > credentials.yaml
+    steps:
 
-        helm upgrade --install cocolit ./infra/charts/cocolit \
-          --namespace apps \
-          --create-namespace \
-          -f credentials.yaml \
-          --set streamlit.image.tag=${{ env.SHORT_SHA }}
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set short SHA
+        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Build and Push Inference Service Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: inference.Dockerfile
+          push: true
+          tags: ghcr.io/davnish/inference-service:${{ env.SHORT_SHA }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+# -------------------------------------------------
+# 4 Deploy
+# -------------------------------------------------
+
+  deploy:
+    needs:
+      - detect_changes
+      - build_streamlit
+      - build_inference
+
+    if: |
+      needs.detect_changes.outputs.streamlit == 'true' ||
+      needs.detect_changes.outputs.inference == 'true' ||
+      needs.detect_changes.outputs.helm == 'true'
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Setup kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
+
+      - name: Verify cluster access
+        run: kubectl get nodes
+
+      - name: Deploy via Helm
+        run: |
+
+          SHORT_SHA=${GITHUB_SHA::7}
+
+          echo "${{ secrets.CREDENTIALS }}" > credentials.yaml
+
+          helm upgrade --install cocolit ./infra/charts/cocolit \
+            --namespace apps \
+            --create-namespace \
+            -f credentials.yaml \
+            --set streamlit.image.tag=$SHORT_SHA \
+            --set inferenceService.image.tag=$SHORT_SHA
