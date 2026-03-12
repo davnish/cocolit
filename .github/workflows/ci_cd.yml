@@ -135,7 +135,7 @@ jobs:
   deploy:
     needs:
       - detect_changes
-      - build_streamlit
+      - build_frontend
       - build_inference
 
     if: |
