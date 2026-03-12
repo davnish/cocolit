@@ -19,4 +19,12 @@ spec:
         image: "{{ .Values.inference.image.repository}}:{{ .Values.inference.image.tag }}"
         ports:
         - containerPort: 8000
+        resources:
+            requests:
+              cpu: {{ .Values.inference.resources.requests.cpu }}
+              memory: {{ .Values.inference.resources.requests.memory }}
+
+            limits:
+              cpu: {{ .Values.inference.resources.limits.cpu }}
+              memory: {{ .Values.inference.resources.limits.memory }}
 
