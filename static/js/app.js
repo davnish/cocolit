@@ -21,7 +21,7 @@ function initMainMap() {
         maxZoom: 20
     }).addTo(mainMap);
 
-    // Add Geoman controls
+    // Add Geoman controls (Only Rectangle)
     mainMap.pm.addControls({
         position: 'topleft',
         drawMarker: false,
@@ -34,9 +34,29 @@ function initMainMap() {
         editMode: false,
         dragMode: false,
         cutPolygon: false,
-        removalMode: true
+        removalMode: false,
+        customControls: false
     });
-    
+
+    // Add Search Box (Geocoder)
+    L.Control.geocoder({
+        defaultMarkGeocode: false,
+        position: 'topright',
+        placeholder: 'Search for a region...'
+    }).on('markgeocode', function(e) {
+        const bbox = e.geocode.bbox;
+        mainMap.fitBounds(bbox);
+    }).addTo(mainMap);
+
+    // Disable map dragging when drawing tool is enabled to support mobile drag-to-draw
+    mainMap.on('pm:globaldrawmodetoggled', (e) => {
+        if (e.enabled && e.shape === 'Rectangle') {
+            mainMap.dragging.disable();
+        } else {
+            mainMap.dragging.enable();
+        }
+    });
+
     // Feature group to hold predictions
     featureGroup = L.featureGroup().addTo(mainMap);
 
@@ -45,7 +65,7 @@ function initMainMap() {
         // Init tooltip bound near cursor
         drawTooltip = L.tooltip({ permanent: true, direction: 'right', className: 'draw-tooltip' })
             .setLatLng(mainMap.getCenter())
-            .setContent("Area: 0.00 Km²")
+            .setContent("Area: 0.00 Km²<br/><span style='font-size:0.85em;color:#94a3b8;'>Click to finish</span>")
             .addTo(mainMap);
 
         workingLayer.on('pm:vertexadded', (e) => updateLiveArea({ layer: workingLayer }, null));
@@ -70,6 +90,12 @@ function initMainMap() {
         
         // Final area calc for this shape
         const areaSqM = turf.area(geojson);
+        if (areaSqM / 1000000 > 0.5) {
+            alert("The selected area is too large! Please decrease the size below 0.5 Km².");
+            mainMap.removeLayer(layer);
+            return;
+        }
+
         totalArea += areaSqM;
         updateMetrics();
 
@@ -89,14 +115,23 @@ function updateLiveArea(e, latlng) {
         
         if (geojson.geometry.type === 'Polygon' && geojson.geometry.coordinates[0].length >= 4) {
             const tempArea = turf.area(geojson);
-            const displayKm2 = ((totalArea + tempArea) / 1000000).toFixed(3);
+            const tempAreaKm2 = tempArea / 1000000;
+            const displayKm2 = ((totalArea / 1000000) + tempAreaKm2).toFixed(3);
             
             // Update global dashboard
             document.getElementById('metric-area').textContent = displayKm2;
             
-            // Update tooltip text
-            if (drawTooltip) {
-                drawTooltip.setContent(`Area: ${(tempArea / 1000000).toFixed(3)} Km²`);
+            // Update tooltip text and layer color based on size
+            if (tempAreaKm2 > 0.5) {
+                e.layer.setStyle({ color: '#ef4444', fillColor: '#ef4444' }); // Red
+                if (drawTooltip) {
+                    drawTooltip.setContent(`Area: ${tempAreaKm2.toFixed(3)} Km²<br/><span style="color:#ef4444;font-weight:bold;">can you please decrease the size 🥺</span>`);
+                }
+            } else {
+                e.layer.setStyle({ color: '#3388ff', fillColor: '#3388ff' }); // Blue
+                if (drawTooltip) {
+                    drawTooltip.setContent(`Area: ${tempAreaKm2.toFixed(3)} Km²<br/><span style="font-size:0.85em;color:#94a3b8;">Click to finish</span>`);
+                }
             }
         }
         
