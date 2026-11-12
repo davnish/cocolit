@@ -1,10 +1,12 @@
-from osgeo import gdal
 import asyncio
-from fastapi import FastAPI
+import hmac
+import os
+
+from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from src.data_struct.bbox import BBox, BBoxBounds
 from pipelines.inference import InferencePipeline
 from fastapi.responses import ORJSONResponse
-import json
+from src.exceptions.exceptions import BBoxTooBig, BBoxTooSmall
 import yaml
 
 def read_config()-> dict:
@@ -17,18 +19,37 @@ config = read_config()
 
 app = FastAPI()
 
-inference = InferencePipeline(config['model']['path'])
+# Set on public deployments (Cloud Run); the in-cluster service can leave it unset.
+API_KEY = os.environ.get("INFERENCE_API_KEY") or None
+
+
+def require_api_key(x_api_key: str | None = Header(default=None)) -> None:
+    if API_KEY and not hmac.compare_digest(x_api_key or "", API_KEY):
+        raise HTTPException(status_code=401, detail="invalid API key")
+
+
+@app.exception_handler(BBoxTooBig)
+@app.exception_handler(BBoxTooSmall)
+async def bbox_invalid(request: Request, exc: BBoxTooBig | BBoxTooSmall) -> ORJSONResponse:
+    return ORJSONResponse(status_code=422, content={"detail": exc.message})
+
+inference = InferencePipeline(
+    config['model']['path'],
+    tile_workers=config.get('inference', {}).get('tile_workers', 16),
+)
 
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the Inference API"}
 
-@app.post("/predict")
+@app.post("/predict", dependencies=[Depends(require_api_key)])
 async def inference_bbox(bboxbounds: BBoxBounds) -> ORJSONResponse:
     bbox = BBox(bboxbounds)
     bbox = await asyncio.to_thread(inference.run, bbox) # Run in a separate thread to avoid blocking event loop
-    preds = json.loads(bbox.preds.to_json())
-    return ORJSONResponse(content={"status": "success", "predictions": preds})
+    # With no detections this is an empty FeatureCollection.
+    return ORJSONResponse(
+        content={"status": "success", "predictions": bbox.preds.to_geojson()}
+    )
 
 @app.get("/health")
 def health_check():

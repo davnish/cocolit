@@ -1,14 +1,17 @@
---find-links=https://girder.github.io/large_image_wheels
-GDAL
-ultralytics
-rasvec
-sqlmodel>=0.0.31
-onnxruntime>=1.23.2
-onnx
-rasterio==1.3.11
+# Inference service only: onnxruntime + numpy pre/post-processing.
+# No torch/ultralytics, GDAL, rasterio or rasvec (see src/utils/detector.py, src/utils/tiles.py).
+onnxruntime==1.23.2
 numpy==1.26.4
-scikit-image<0.23
+pillow>=10
+httpx>=0.28
+pydantic>=2
+pyyaml>=6
 fastapi>=0.128.0
 orjson>=3.11.5
 python-dotenv>=1.2.1
 uvicorn>=0.40.0
+opentelemetry-api==1.45.2
+opentelemetry-sdk==1.45.2
+opentelemetry-exporter-otlp-proto-http==1.45.2
+opentelemetry-instrumentation-fastapi==0.66b2
+opentelemetry-instrumentation-requests==0.66b2
