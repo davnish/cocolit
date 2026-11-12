@@ -104,6 +104,19 @@ a { color: inherit; }
     transition: color 0.15s, border-color 0.15s, background 0.15s;
 }
 
+.social-links a.docs-link {
+    width: auto;
+    gap: 0.4rem;
+    padding: 0 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+@media (max-width: 480px) {
+    .social-links a.docs-link { width: 38px; padding: 0; }
+    .docs-link-label { display: none; }
+}
+
 .social-links a:hover {
     color: var(--text-main);
     border-color: var(--accent);
