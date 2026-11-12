@@ -59,6 +59,11 @@ in India and Mexico, or pan to any place on Earth.
 
 ## 🛠️ How it works
 
+**In one line:** everything (the website, the detector and the PostGIS
+database) runs on a single **k3s** Kubernetes node, and all traffic reaches it
+through a **Cloudflare Tunnel**, so no port is ever open to the internet. The
+database stays private inside the cluster; only the website talks to it.
+
 ```mermaid
 flowchart LR
     user([🧑 You]) -->|draw a box| cf[Cloudflare]
