@@ -1,6 +1,6 @@
 [project]
 name = "cocolit"
-version = "0.1.0"
+version = "0.0.2"
 description = "lets detect some coconuts!"
 requires-python = ">=3.11"
 # Union of requirements_inference.txt and requirements_streamlit.txt (the
