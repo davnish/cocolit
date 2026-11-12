@@ -31,4 +31,7 @@ statistics_ui:
 model:
   path: "models/best.onnx"
 
+inference:
+  tile_workers: 16  # concurrent satellite tile downloads per request
+
 

@@ -1,56 +1,44 @@
-# Stage 1: Build and Install Dependencies
-FROM ghcr.io/astral-sh/uv:0.5-python3.11-bookworm-slim AS builder
+# Inference service: pure-wheel Python deps, no compilers or GDAL needed.
+# Builds for linux/arm64 (Oracle A1, Apple Silicon) and linux/amd64 (Cloud Run).
+FROM ghcr.io/astral-sh/uv:0.9-python3.11-bookworm-slim AS builder
 
 ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
-    VIRTUAL_ENV=/opt/venv \
-    CPLUS_INCLUDE_PATH=/usr/include/gdal \
-    C_INCLUDE_PATH=/usr/include/gdal
+    VIRTUAL_ENV=/opt/venv
 
-WORKDIR /app
+COPY requirements_inference.txt /tmp/
+RUN uv venv $VIRTUAL_ENV && \
+    uv pip install --no-cache --python $VIRTUAL_ENV/bin/python -r /tmp/requirements_inference.txt && \
+    # onnxruntime depends on sympy only for offline graph tools; ~80 MB unused at runtime.
+    uv pip uninstall --python $VIRTUAL_ENV/bin/python sympy mpmath
 
-# Install system dependencies + GDAL headers
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=bind,source=packages.txt,target=packages.txt \
-    apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    g++ \
-    $(grep -vE '^\s*#|^\s*$' /app/packages.txt) \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install build-time Python deps first, then the rest
-RUN --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=bind,source=requirements_inference.txt,target=requirements_inference.txt \
-    uv venv $VIRTUAL_ENV && \
-    uv pip install cython setuptools wheel numpy && \
-    uv pip install -r requirements_inference.txt
-
-# Stage 2: Final Runtime Image
 FROM python:3.11-slim-bookworm
 
 LABEL org.opencontainers.image.title="inference-server"
-LABEL org.opencontainers.image.description="inference-server"
+LABEL org.opencontainers.image.description="cocolit coconut-tree detection API"
 LABEL org.opencontainers.image.source="https://github.com/davnish/cocolit"
 LABEL org.opencontainers.image.licenses="MIT"
 
-# Install ONLY the runtime GDAL library (required for rasterio to run)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libgdal32 \
-    libgl1 \
-    libglib2.0-0 \
-    && rm -rf /var/lib/apt/lists/*
-
 ENV PYTHONUNBUFFERED=1 \
-    PATH="/opt/venv/bin:$PATH"
+    PATH="/opt/venv/bin:$PATH" \
+    PORT=8000
 
+RUN useradd --create-home --uid 10001 app
 WORKDIR /app
 
-# Copy the venv and source code
 COPY --from=builder /opt/venv /opt/venv
-COPY src ./src
-COPY pipelines ./pipelines
-COPY models ./models
 COPY configs ./configs
+COPY src/__init__.py ./src/__init__.py
+COPY src/api ./src/api
+COPY src/data_struct/__init__.py src/data_struct/bbox.py ./src/data_struct/
+COPY src/exceptions ./src/exceptions
+COPY src/utils/__init__.py src/utils/mercator.py src/utils/tiles.py src/utils/detector.py ./src/utils/
+COPY src/telemetry.py ./src/telemetry.py
+COPY pipelines/__init__.py pipelines/inference.py ./pipelines/
+COPY models/best.onnx ./models/best.onnx
+RUN mkdir logs && chown app logs
+USER 10001
 
 EXPOSE 8000
-CMD [ "uvicorn", "src.api.inference:app" , "--host", "0.0.0.0", "--port", "8000"]
+# Cloud Run sets $PORT; k8s uses the default 8000.
+CMD ["sh", "-c", "exec uvicorn src.api.inference:app --host 0.0.0.0 --port ${PORT} --no-access-log"]
