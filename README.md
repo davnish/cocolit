@@ -20,7 +20,7 @@ is a working product, kept small enough to run for free.
   India and Mexico, each checked by running the model on the spot.
 - **Every tree marked:** each detected coconut tree is drawn on the map, with the
   count, area and trees per km² for your session.
-- **Community statistics:** every scan is saved in PostGIS and summarised as
+- **Statistics:** every scan is saved in PostGIS and summarised as
   a heatmap and a per-country table.
 - **Fast, CPU-only inference:** 2.5 km² (≈480 map tiles) in about 3 s on one
   machine, with no GPU.
@@ -128,7 +128,7 @@ INFERENCE_URL=http://127.0.0.1:8000/predict uvicorn main:app --port 8501
 ```
 
 Without database settings the app still detects trees; it just doesn't save
-scans or show community statistics. To use a PostGIS database, set
+scans or show statistics. To use a PostGIS database, set
 `POSTGRES_HOST`, `POSTGRES_DATABASE`, `POSTGRES_USERNAME` and
 `POSTGRES_PASSWORD` (or `local_database` to a full connection URL). Tables are
 created on startup.
