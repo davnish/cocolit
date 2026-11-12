@@ -1,10 +1,38 @@
 // Default configs based on `config.yml` configuration
-const defaultCenter = [7.550186, 79.88214];
-const defaultZoom = 15;
+// Dense coconut estate in Sri Lanka's coconut triangle (~1,000 trees/km²),
+// close enough to see individual trees.
+const defaultCenter = [7.7955, 80.037];
+const defaultZoom = 18;
+
+const BOX_COLOR = '#f2b544';   // drawn boxes (matches the accent colour)
+const TREE_COLOR = '#ff5a4f';  // detected trees: high contrast on green imagery
+
+// Dense coconut areas, each checked by running the model on the spot
+// (place names from OpenStreetMap reverse geocoding)
+// (2,700 to 9,500 trees per km² in a 0.1 km² box).
+const SPOTS = [
+    { name: 'Pahala Mawathagama, Kurunegala, Sri Lanka', center: [7.7955, 80.037] },
+    { name: 'Puliyampatti, Pollachi, Tamil Nadu, India', center: [10.68, 77.03] },
+    { name: 'Indupalle, Konaseema, Andhra Pradesh, India', center: [16.57, 81.99] },
+    { name: 'Cofradía de Morelos, Tecomán, Colima, Mexico', center: [18.88, -103.86] },
+    { name: 'Nannamukku, Malappuram, Kerala, India', center: [10.7336, 76.0031] },
+    { name: 'Anagondanahalli, Tiptur, Karnataka, India', center: [13.24, 76.46] },
+];
+let spotIndex = 0; // the map opens on SPOTS[0]
+
+function goToNextSpot() {
+    if (busy) return;
+    setDrawMode(false);
+    spotIndex = (spotIndex + 1) % SPOTS.length;
+    const spot = SPOTS[spotIndex];
+    mainMap.flyTo(spot.center, defaultZoom, { duration: 1.5 });
+    setStatus(`Now at <strong>${spot.name}</strong>. Press <strong>Draw a box</strong> and drag over the trees, or <strong>Try another location</strong>.`);
+}
 
 let mainMap;
 let statsMap;
 let featureGroup;
+let boxesGroup;
 
 let totalArea = 0;
 let totalCount = 0;
@@ -34,7 +62,8 @@ function initMainMap() {
         mainMap.fitBounds(bbox);
     }).addTo(mainMap);
 
-    // Feature group to hold predictions
+    // Drawn boxes and predicted trees (Clear removes both)
+    boxesGroup = L.featureGroup().addTo(mainMap);
     featureGroup = L.featureGroup().addTo(mainMap);
 
 }
@@ -48,29 +77,10 @@ let drawButton = null;
 let drawing = null; // { pointerId, start: LatLng, startPoint: Point, rect }
 
 function initBoxDraw() {
-    const BoxControl = L.Control.extend({
-        options: { position: 'topleft' },
-        onAdd() {
-            const bar = L.DomUtil.create('div', 'leaflet-bar');
-            drawButton = L.DomUtil.create('a', 'draw-box-btn', bar);
-            drawButton.href = '#';
-            drawButton.title = 'Draw a box (drag on the map)';
-            drawButton.setAttribute('role', 'button');
-            drawButton.setAttribute('aria-pressed', 'false');
-            drawButton.setAttribute('aria-label', 'Draw a box');
-            drawButton.innerHTML =
-                '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">' +
-                '<rect x="4" y="4" width="16" height="16" fill="none" stroke="currentColor" ' +
-                'stroke-width="2" stroke-dasharray="3 2"/></svg>';
-            L.DomEvent.disableClickPropagation(bar);
-            L.DomEvent.on(drawButton, 'click', (e) => {
-                L.DomEvent.preventDefault(e);
-                setDrawMode(!drawMode);
-            });
-            return bar;
-        }
-    });
-    new BoxControl().addTo(mainMap);
+    drawButton = document.getElementById('draw-btn');
+    drawButton.addEventListener('click', () => setDrawMode(!drawMode));
+    document.getElementById('clear-btn').addEventListener('click', clearResults);
+    document.getElementById('spot-btn').addEventListener('click', goToNextSpot);
 
     const el = mainMap.getContainer();
     el.addEventListener('pointerdown', onDrawPointerDown);
@@ -90,9 +100,46 @@ function setDrawMode(on) {
     const el = mainMap.getContainer();
     el.classList.toggle('drawing-box', on);
     if (drawButton) {
-        drawButton.classList.toggle('active', on);
         drawButton.setAttribute('aria-pressed', String(on));
+        drawButton.querySelector('.btn-label').textContent = on ? 'Cancel' : 'Draw a box';
     }
+    if (on) {
+        setStatus('Drag on the map to draw a box (up to 0.5 km²). Lift your finger or release the mouse to start detecting.');
+    } else if (!busy) {
+        setStatus(idleMessage());
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Status line under the toolbar: tells the user what to do next / what happened.
+// ---------------------------------------------------------------------------
+let busy = false;
+
+function setStatus(html, kind = '') {
+    const el = document.getElementById('map-status');
+    el.innerHTML = html;
+    el.classList.toggle('is-error', kind === 'error');
+    el.classList.toggle('is-success', kind === 'success');
+}
+
+function idleMessage() {
+    return totalCount > 0 || totalArea > 0
+        ? 'Draw another box to add to your count, or press <strong>Clear</strong> to start over.'
+        : `Now at <strong>${SPOTS[spotIndex].name}</strong>. Press <strong>Draw a box</strong> and drag over the trees, or <strong>Try another location</strong>.`;
+}
+
+function fmt(n, digits = 0) {
+    return n.toLocaleString(undefined, { minimumFractionDigits: digits, maximumFractionDigits: digits });
+}
+
+function clearResults() {
+    setDrawMode(false);
+    boxesGroup.clearLayers();
+    featureGroup.clearLayers();
+    totalArea = 0;
+    totalCount = 0;
+    updateMetrics();
+    setStatus(idleMessage());
 }
 
 function onDrawPointerDown(e) {
@@ -101,7 +148,7 @@ function onDrawPointerDown(e) {
     e.preventDefault();
     mainMap.getContainer().setPointerCapture(e.pointerId);
     const start = mainMap.mouseEventToLatLng(e);
-    const rect = L.rectangle(L.latLngBounds(start, start), { color: '#3388ff', weight: 2 }).addTo(mainMap);
+    const rect = L.rectangle(L.latLngBounds(start, start), { color: BOX_COLOR, weight: 2 }).addTo(mainMap);
     drawTooltip = L.tooltip({ permanent: true, direction: 'right', className: 'draw-tooltip' })
         .setLatLng(start)
         .setContent("Area: 0.000 Km²")
@@ -152,10 +199,13 @@ async function onBoxDrawn(layer) {
     const geojson = layer.toGeoJSON();
     const areaSqM = turf.area(geojson);
     if (areaSqM / 1000000 > 0.5) {
-        alert("The selected area is too large! Please decrease the size below 0.5 Km².");
         mainMap.removeLayer(layer);
+        setStatus(`That box is ${fmt(areaSqM / 1e6, 2)} km². Please draw one under 0.5 km².`, 'error');
         return;
     }
+    mainMap.removeLayer(layer);
+    layer.setStyle({ color: BOX_COLOR, weight: 2, fillOpacity: 0.05 });
+    boxesGroup.addLayer(layer);
 
     totalArea += areaSqM;
     updateMetrics();
@@ -178,12 +228,12 @@ function updateLiveArea(e, latlng) {
             
             // Update tooltip text and layer color based on size
             if (tempAreaKm2 > 0.5) {
-                e.layer.setStyle({ color: '#ef4444', fillColor: '#ef4444' }); // Red
+                e.layer.setStyle({ color: '#ff7a6b', fillColor: '#ff7a6b' }); // too big
                 if (drawTooltip) {
-                    drawTooltip.setContent(`Area: ${tempAreaKm2.toFixed(3)} Km²<br/><span style="color:#ef4444;font-weight:bold;">can you please decrease the size 🥺</span>`);
+                    drawTooltip.setContent(`Area: ${tempAreaKm2.toFixed(3)} Km²<br/><span style="color:#ff7a6b;font-weight:bold;">Too big: keep it under 0.5 km²</span>`);
                 }
             } else {
-                e.layer.setStyle({ color: '#3388ff', fillColor: '#3388ff' }); // Blue
+                e.layer.setStyle({ color: BOX_COLOR, fillColor: BOX_COLOR });
                 if (drawTooltip) {
                     drawTooltip.setContent(`Area: ${tempAreaKm2.toFixed(3)} Km²<br/><span style="font-size:0.85em;color:#94a3b8;">Release to finish</span>`);
                 }
@@ -203,14 +253,18 @@ function updateMetrics() {
     const areaKm2 = totalArea / 1000000;
     const density = areaKm2 > 0 ? totalCount / areaKm2 : 0;
     
-    document.getElementById('metric-area').textContent = areaKm2.toFixed(3);
-    document.getElementById('metric-count').textContent = totalCount;
-    document.getElementById('metric-density').textContent = density.toFixed(2);
+    document.getElementById('metric-area').textContent = fmt(areaKm2, 3);
+    document.getElementById('metric-count').textContent = fmt(totalCount);
+    document.getElementById('metric-density').textContent = fmt(density);
+    document.getElementById('clear-btn').disabled = totalArea === 0 && totalCount === 0;
 }
 
 async function submitInference(geojson, layer) {
     const overlay = document.getElementById('loading-overlay');
     overlay.classList.remove('hidden');
+    busy = true;
+    drawButton.disabled = true;
+    setStatus('Detecting trees in your box…');
     
     try {
         const response = await fetch('/api/inference', {
@@ -237,12 +291,19 @@ async function submitInference(geojson, layer) {
         
         totalCount += features.length;
         updateMetrics();
+        const n = features.length;
+        setStatus(
+            n > 0
+                ? `<strong>Found ${fmt(n)} tree${n === 1 ? '' : 's'}</strong> in ${fmt(turf.area(geojson) / 1e6, 3)} km². Draw another box to add more, or press <strong>Clear</strong>.`
+                : 'No coconut trees found in that box. Try an area where tree crowns are clearly visible, or press <strong>Try another location</strong>.',
+            n > 0 ? 'success' : ''
+        );
         
         // Draw predictions as circles
         features.forEach(feat => {
             const coords = feat.geometry.coordinates;
              L.circle([coords[1], coords[0]], {
-                color: '#ef4444', 
+                color: TREE_COLOR, 
                 fill: false,      
                 weight: 2,        
                 radius: 3         
@@ -254,13 +315,15 @@ async function submitInference(geojson, layer) {
 
     } catch (err) {
         console.error("Error during inference API call:", err);
-        alert(err.userMessage || "Failed to get predictions. Please try again.");
+        setStatus(err.userMessage || "Something went wrong while detecting trees. Please try again.", 'error');
         // Revert area if inference fails
         totalArea -= turf.area(geojson);
         updateMetrics();
-        mainMap.removeLayer(layer);
+        boxesGroup.removeLayer(layer);
     } finally {
         overlay.classList.add('hidden');
+        busy = false;
+        drawButton.disabled = false;
     }
 }
 
@@ -291,18 +354,20 @@ async function updateStats() {
         const data = await response.json();
         
         // Update summary digits
-        document.getElementById('stat-countries').textContent = data.countries.length;
-        document.getElementById('stat-total-trees').textContent = data.metrics.total_trees_detected;
-        document.getElementById('stat-locations').textContent = data.metrics.locations_covered;
+        document.getElementById('stat-countries').textContent = fmt(data.countries.length);
+        document.getElementById('stat-total-trees').textContent = fmt(data.metrics.total_trees_detected);
+        document.getElementById('stat-locations').textContent = fmt(data.metrics.locations_covered);
         
         // Populate table
         const tbody = document.querySelector('#countries-table tbody');
         tbody.innerHTML = ''; // clear previous data
-        data.countries.forEach(c => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${c.country}</td><td>${c.trees_detected}</td>`;
-            tbody.appendChild(tr);
-        });
+        data.countries
+            .sort((a, b) => b.trees_detected - a.trees_detected)
+            .forEach(c => {
+                const tr = tbody.insertRow();
+                tr.insertCell().textContent = c.country;
+                tr.insertCell().textContent = fmt(c.trees_detected);
+            });
         
         // Remove old heat layer if it exists
         if (heatLayer && statsMap.hasLayer(heatLayer)) {
