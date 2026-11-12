@@ -37,8 +37,7 @@ All three (the website, the detector and the database) run on a single
 **k3s** Kubernetes node. Visitors reach it through a **Cloudflare Tunnel**, so
 the node never opens a port to the internet, and the database stays private
 inside the cluster. When the detector is busy, requests spill over to a backup
-copy on **Google Cloud Run** that costs nothing when idle. The whole setup is
-designed to run for free.
+copy on **Google Cloud Run** that costs nothing when idle.
 
 ## Contents
 
