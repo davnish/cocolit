@@ -1,178 +1,174 @@
-# Cocolit 🌴
+<div align="center">
 
-**Count coconut trees from satellite imagery.** Draw a box on the map, and a
-[YOLO11n](https://docs.ultralytics.com/models/yolo11/) detection model
-(Ultralytics, AGPL-3.0) marks every coconut tree inside it.
+# 🌴 Cocolit
 
-**Live:** [cocolit.prithvilabs.com](https://cocolit.prithvilabs.com)
+**Count coconut trees from space.**
 
-![Cocolit: a box drawn over a plantation in Sri Lanka, with 175 coconut trees marked](misc/screenshot.jpg)
+Draw a box on a satellite map and Cocolit finds every coconut tree inside it,
+in a few seconds, on a plain CPU.
 
-I built Cocolit to learn how to design a machine learning system end to end:
-model serving, a web app, a spatial database, deployment and cost control. It
-is a working product, kept small enough to run for free.
+### [👉 Try it live at cocolit.prithvilabs.com](https://cocolit.prithvilabs.com)
 
-## Features
+![A box drawn over a coconut plantation in Sri Lanka, with 175 trees marked](misc/screenshot.jpg)
 
-- **Draw to detect:** press **Draw a box** and drag (mouse or finger) over up
-  to 0.5 km²; a live tooltip shows the area while you draw.
-- **Try another location:** jump between dense coconut areas in Sri Lanka,
-  India and Mexico, each checked by running the model on the spot.
-- **Every tree marked:** each detected coconut tree is drawn on the map, with the
-  count, area and trees per km² for your session.
-- **Statistics:** every scan is saved in PostGIS and summarised as
-  a heatmap and a per-country table.
-- **Fast, CPU-only inference:** 2.5 km² (≈480 map tiles) in about 3 s on one
-  machine, with no GPU.
-- **Overflow to Cloud Run:** when the main inference service is busy or down,
-  requests go to a scale-to-zero Cloud Run service instead of queueing.
+</div>
 
-## How it works
+## ✨ Try it in 30 seconds
+
+1. **Open** [cocolit.prithvilabs.com](https://cocolit.prithvilabs.com). The map
+   starts on a coconut plantation in Sri Lanka.
+2. **Press _Draw a box_** and drag over the trees. It works with a mouse or a
+   finger.
+3. **Watch the count.** Every tree gets a red circle, and you see the total
+   and the trees per km².
+
+Want somewhere else? Press **🌐 Try another location** to jump to coconut
+farms in India and Mexico, or search for any place on Earth.
+
+## 🥥 What you can do
+
+| | |
+|---|---|
+| 🟧 **Draw to detect** | Drag a box up to 0.5 km²; a tooltip shows the area as you draw |
+| 🌐 **Try another location** | Hop between dense coconut areas, each checked with the model |
+| 🔴 **See every tree** | Each detected tree is circled, with the count and density |
+| 📍 **Coordinates bar** | See where you're pointing; click to pin a spot and copy it |
+| 📊 **Statistics** | A heatmap and per-country table of every scan anyone has made |
+| 📱 **Phone friendly** | The whole thing works with touch |
+
+## 🛠️ How it works
 
 ```mermaid
 flowchart LR
-    user([Browser]) -->|HTTPS| cf[Cloudflare<br/>DNS, WAF, rate limit]
-    cf -->|Tunnel, outbound only| fe
-
-    subgraph k3s["k3s node (Helm release)"]
-        fe[Frontend<br/>FastAPI + Leaflet] -->|1. local first| inf[Inference API<br/>FastAPI + onnxruntime]
-        fe --> db[(PostGIS<br/>CloudNativePG)]
-    end
-
-    fe -.->|2. if busy or down| run[Cloud Run<br/>same inference image]
-    inf --> tiles[(Satellite tiles<br/>zoom 19)]
-    run --> tiles
+    user([🧑 You]) -->|draw a box| cf[Cloudflare]
+    cf --> fe[Website<br/>FastAPI + Leaflet]
+    fe -->|find trees| inf[Detector<br/>YOLO11n on onnxruntime]
+    inf -->|fetch imagery| tiles[(Satellite tiles)]
+    fe -->|save results| db[(PostGIS)]
+    fe -.->|when busy| run[Cloud Run<br/>backup detector]
 ```
 
-1. The browser sends the drawn box to the **frontend**, a FastAPI app that
-   also serves the static map UI (vanilla JS and Leaflet). Cloudflare sits in
-   front: DNS, TLS, a rate limit on `/api/inference`, and a Tunnel, so the
-   node has no open inbound ports.
-2. The frontend validates the size and calls the **inference API**. If that
-   service is already busy (or down), it calls the **Cloud Run** copy instead.
-3. The inference API fetches the zoom-19 satellite tiles for the box
-   concurrently and stitches them into an in-memory image, then cuts it into
-   640 × 640 patches.
-4. Each row of patches goes to the **YOLO11n** model (ONNX, run with
-   onnxruntime) **as soon as its tiles arrive**, so downloading and inference
-   overlap.
-5. Box centres are converted to map coordinates (EPSG:3857) and returned as
-   GeoJSON. The frontend stores the box and the trees in **PostGIS** and draws
-   them on the map.
+In plain words:
 
-### Performance
+1. **You draw a box.** The website checks the size and sends it to the
+   detector.
+2. **The detector fetches satellite imagery** for that box, many tiles at once,
+   straight into memory.
+3. **A YOLO11n model looks for coconut trees** in 640 × 640 pixel pieces. It
+   starts on the first pieces while the rest are still downloading, which saves
+   time.
+4. **The trees come back as points on the map**, and the result is saved for
+   the statistics.
+5. **If the detector is busy**, the request goes to a backup copy on Google
+   Cloud Run instead of waiting.
 
-Measured on an Apple M1 with `scripts/benchmark_inference.py` (detections are
-identical before and after):
+Want the full picture? See **[docs/architecture.md](docs/architecture.md)**.
 
-| Area | Earlier pipeline | Now | Peak memory |
-|---|---|---|---|
-| 0.1 km² | 0.38 s | 0.21 s | 263 MB |
-| 1 km² | 1.70 s | 1.40 s | 365 MB |
-| 2.5 km² | 4.52 s | 3.08 s | 525 MB |
-| 4.9 km² | 8.04 s | 5.9 s | 723 MB |
+### ⚡ How fast is it?
 
-What made the difference:
+On a laptop CPU (Apple M1), no GPU:
 
-- tiles fetched and decoded in parallel straight into memory, instead of
-  writing GeoTIFFs to disk and reading them back;
-- the model starting on the first rows while later tiles are still
-  downloading;
-- the model run directly with onnxruntime (identical boxes and scores to
-  Ultralytics), which removed PyTorch from the inference image. The image
-  is now 111 MB compressed and idles at about 160 MB of RAM.
+| Area you draw | Time | Memory |
+|---|---|---|
+| 0.1 km² (a small farm) | 0.2 s | 263 MB |
+| 1 km² | 1.4 s | 365 MB |
+| 2.5 km² | 3.1 s | 525 MB |
 
-## Tech stack
+That's about 1.5× faster and 30% lighter than the first version, with exactly
+the same detections. The detector's container image is just 111 MB.
 
-| Part | Technology |
-|---|---|
-| Model | YOLO11n by Ultralytics (AGPL-3.0), trained for one class (coconut tree), served as ONNX on onnxruntime; see [models/README.md](models/README.md) |
-| Inference API | FastAPI, httpx, NumPy, Pillow |
-| Frontend | FastAPI, vanilla JS, Leaflet, Turf.js |
-| Database | PostgreSQL + PostGIS on CloudNativePG, SQLModel / GeoAlchemy2 |
-| Platform | k3s, Helm, Cloudflare Tunnel, Google Cloud Run (overflow) |
-| Infrastructure as code | OpenTofu (Oracle Cloud Always Free node) |
+## 🚀 Run it on your machine
 
-## Project layout
-
-```
-main.py                  Frontend API (/api/inference, /api/statistics) + static UI
-static/                  Map UI: index.html, style.css, js/app.js
-src/api/inference.py     Inference API (/predict, /health)
-pipelines/inference.py   Download → detect → GeoJSON pipeline, with timings
-src/utils/tiles.py       Concurrent tile download and streaming 640 px patches
-src/utils/detector.py    YOLO pre/post-processing (NMS) on onnxruntime
-src/inference_router.py  Local-first routing with Cloud Run overflow
-src/database/, src/dal/  Tables and database access (PostGIS)
-models/best.onnx         Trained YOLO11n model (AGPL-3.0, see models/README.md)
-infra/charts/cocolit/    Helm chart (app, PostGIS, cloudflared)
-infra/oci/               OpenTofu for an Oracle Cloud A1 k3s node
-scripts/                 Benchmark and deploy scripts
-tests/                   Unit tests (tests/integration needs network)
-```
-
-## Run it locally
-
-You need Python 3.11+.
+You need **Python 3.11+**.
 
 ```bash
 git clone https://github.com/davnish/cocolit && cd cocolit
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements_inference.txt -r requirements_streamlit.txt
+```
 
-# Terminal 1: inference API
+Then start the two parts, each in its own terminal:
+
+```bash
+# 1. The detector
 uvicorn src.api.inference:app --port 8000
 
-# Terminal 2: frontend (open http://localhost:8501)
+# 2. The website
 INFERENCE_URL=http://127.0.0.1:8000/predict uvicorn main:app --port 8501
 ```
 
-Without database settings the app still detects trees; it just doesn't save
-scans or show statistics. To use a PostGIS database, set
-`POSTGRES_HOST`, `POSTGRES_DATABASE`, `POSTGRES_USERNAME` and
-`POSTGRES_PASSWORD` (or `local_database` to a full connection URL). Tables are
-created on startup.
+Open **<http://localhost:8501>** and draw a box. 🎉
 
-### Tests and benchmark
+> 💡 No database needed to try it. Without one, detection works; results
+> just aren't saved and statistics stay empty. To save them, copy
+> [`.env.example`](.env.example) to `.env` and fill in the `POSTGRES_*` settings.
+
+**Run the tests:**
 
 ```bash
 pytest tests --ignore=tests/integration
-python -m scripts.benchmark_inference --sizes 0.1 0.5 1 2.5
 ```
 
-## Deployment
+## 🗂️ What's where
 
-The app runs as a Helm release on a single k3s node, exposed only through a
-Cloudflare Tunnel (no open inbound ports), with Cloudflare rate limiting on
-`/api/inference`.
+```
+main.py                  the website's API (+ serves the map page)
+static/                  the map page: index.html, style.css, js/app.js
+src/api/inference.py     the detector's API
+pipelines/inference.py   fetch imagery → detect trees → points
+src/utils/tiles.py       downloads satellite tiles, cuts 640 px pieces
+src/utils/detector.py    runs the YOLO11n model
+src/inference_router.py  sends requests to the backup when busy
+src/database/, src/dal/  saving and reading results (PostGIS)
+models/best.onnx         the trained model (see models/README.md)
+infra/                   Helm chart, Oracle Cloud and AWS setup
+scripts/                 deploy and benchmark scripts
+tests/                   tests
+```
 
-- **Single node on k3s:** `scripts/deploy_laptop.sh` builds both images and
-  installs the chart with `infra/charts/cocolit/values-laptop.yaml` (k3s on
-  Colima). The same chart targets an Oracle Cloud Always Free Ampere A1 node,
-  defined in `infra/oci/`.
-- **Cloud Run overflow:** `PROJECT=<gcp-project> scripts/deploy_cloud_run.sh`
-  builds the inference image with Cloud Build and deploys it with
-  min-instances 0, max-instances 2 and an API key, then stores the URL and key
-  in the cluster. Enable it with `--set overflow.enabled=true`.
-- **Secrets** (database, tunnel token, Cloud Run key) live in Kubernetes
-  secrets or a gitignored values file, never in the repository.
+## ☁️ Where it runs
 
-## Limitations and next steps
+Cocolit is built to run **for free**:
 
-- Boxes are limited to 0.5 km² in the UI (5 km² in the API) to keep requests
-  fast on a small CPU node.
-- No download of predictions yet (GeoJSON / shapefile export is planned).
-- An INT8 version of the model is about 1.8× faster but agrees with FP32 on
-  only 90–96% of trees; it needs validating on labelled data before use.
-- Planned: tracing and metrics in Grafana Cloud (OpenTelemetry is
-  instrumented but not yet wired up), multi-arch images in CI, and a cache for
-  repeated areas.
+- **One small Kubernetes (k3s) server** runs the website, the detector and the
+  database. Today that's a laptop; next it's an Oracle Cloud Always Free
+  server ([`infra/oci/`](infra/oci/)).
+- **Cloudflare** sits in front: the domain, HTTPS, rate limiting, and a
+  tunnel, so the server never opens a port to the internet.
+- **Google Cloud Run** holds a backup detector that costs nothing when idle.
 
-## License
+Deploy scripts: [`scripts/deploy_laptop.sh`](scripts/deploy_laptop.sh) and
+[`scripts/deploy_cloud_run.sh`](scripts/deploy_cloud_run.sh). The details are
+in the [architecture doc](docs/architecture.md#deployment).
 
-- **Code:** [MIT](LICENSE).
-- **Model weights** (`models/best.onnx`): **AGPL-3.0**. The detector is
-  [YOLO11n](https://docs.ultralytics.com/models/yolo11/) by Ultralytics, whose
-  code and pretrained weights are AGPL-3.0, and this model was trained from
-  them. See [models/README.md](models/README.md) and [models/LICENSE](models/LICENSE).
-- Satellite imagery is © Google and is not part of this repository.
+## 🧭 What's next
+
+- ⬇️ Download your results as GeoJSON or a shapefile
+- 📈 Live dashboards and tracing in Grafana Cloud
+- ⚡ A faster INT8 model, once it's checked against labelled data
+- 🗺️ Remembering areas that were already scanned
+
+Ideas or bugs? [Open an issue](https://github.com/davnish/cocolit/issues). 🙌
+
+## 🧱 Built with
+
+[YOLO11n](https://docs.ultralytics.com/models/yolo11/) ·
+[onnxruntime](https://onnxruntime.ai/) · [FastAPI](https://fastapi.tiangolo.com/) ·
+[Leaflet](https://leafletjs.com/) · [PostGIS](https://postgis.net/) ·
+[k3s](https://k3s.io/) · [Cloudflare](https://www.cloudflare.com/) ·
+[Cloud Run](https://cloud.google.com/run)
+
+## 📄 License
+
+- **Code:** [MIT](LICENSE). Use it freely.
+- **The model** (`models/best.onnx`) is **AGPL-3.0**. It's
+  [YOLO11n](https://docs.ultralytics.com/models/yolo11/) by Ultralytics, trained
+  to find coconut trees. See [models/README.md](models/README.md).
+- Satellite imagery © Google.
+
+<div align="center">
+
+Made by [Nischal Singh](https://www.linkedin.com/in/nischal-singh/) at
+**prithvilabs** 🌍
+
+</div>
