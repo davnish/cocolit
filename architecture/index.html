@@ -1,0 +1,1385 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Count coconut trees from satellite imagery.">
+      
+      
+      
+        <link rel="canonical" href="https://davnish.github.io/cocolit/architecture/">
+      
+      
+        <link rel="prev" href="..">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+    
+    
+      
+        <title>Architecture - Cocolit</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="amber">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#architecture" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Cocolit" class="md-header__button md-logo" aria-label="Cocolit" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Cocolit
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Architecture
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="amber"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="green" data-md-color-accent="amber"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/davnish/cocolit" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    davnish/cocolit
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Cocolit" class="md-nav__button md-logo" aria-label="Cocolit" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Cocolit
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/davnish/cocolit" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    davnish/cocolit
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#system-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        System overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#frontend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frontend
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Frontend">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#drawing-a-box-staticjsappjs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Drawing a box (static/js/app.js)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#local-first-routing-srcinference_routerpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local-first routing (src/inference_router.py)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inference-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inference API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Inference API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pipeline-pipelinesinferencepy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pipeline (pipelines/inference.py)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Database
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deployment
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Deployment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kubernetes-helm-chart-infrachartscocolit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kubernetes (Helm chart infra/charts/cocolit)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#edge-cloudflare" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Edge: Cloudflare
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overflow-cloud-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overflow: Cloud Run
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#target-node-oracle-cloud" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Target node: Oracle Cloud
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#images" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Images
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-to-change-things" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where to change things
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#system-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        System overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#frontend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frontend
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Frontend">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#drawing-a-box-staticjsappjs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Drawing a box (static/js/app.js)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#local-first-routing-srcinference_routerpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local-first routing (src/inference_router.py)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inference-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inference API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Inference API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pipeline-pipelinesinferencepy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pipeline (pipelines/inference.py)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Database
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deployment
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Deployment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kubernetes-helm-chart-infrachartscocolit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kubernetes (Helm chart infra/charts/cocolit)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#edge-cloudflare" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Edge: Cloudflare
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overflow-cloud-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overflow: Cloud Run
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#target-node-oracle-cloud" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Target node: Oracle Cloud
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#images" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Images
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-to-change-things" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where to change things
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h1>
+<p>Cocolit counts coconut trees in satellite imagery. A user draws a box on a map,
+a YOLO11n model detects the trees inside it, and the result is drawn on the map
+and saved to a spatial database.</p>
+<p>This page describes how the system is built and deployed, how a request flows
+through it, and where to make changes.</p>
+<h2 id="system-overview">System overview<a class="headerlink" href="#system-overview" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>flowchart LR
+    user([Browser]) --&gt;|HTTPS| cf[Cloudflare&lt;br/&gt;DNS, TLS, rate limit]
+    cf --&gt;|Tunnel, outbound only| fe
+
+    subgraph k3s["k3s node · Helm release 'cocolit' · namespace 'apps'"]
+        cfd[cloudflared] -.-&gt; fe
+        fe[Frontend&lt;br/&gt;main.py + static/] --&gt;|1. local first| inf[Inference API&lt;br/&gt;src/api/inference.py]
+        fe --&gt; db[(PostGIS&lt;br/&gt;CloudNativePG)]
+    end
+
+    fe -.-&gt;|2. if local is busy or down| run[Cloud Run&lt;br/&gt;same inference image]
+    inf --&gt; tiles[(Google satellite tiles&lt;br/&gt;zoom 19)]
+    run --&gt; tiles</code></pre>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Code</th>
+<th>Runs as</th>
+<th>Job</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Frontend</td>
+<td><code>main.py</code>, <code>static/</code>, <code>src/inference_router.py</code></td>
+<td>Deployment <code>cocolit-streamlit-deployment</code>, port 8501</td>
+<td>Serves the map UI; validates boxes; routes inference; saves results; statistics</td>
+</tr>
+<tr>
+<td>Inference API</td>
+<td><code>src/api/inference.py</code>, <code>pipelines/inference.py</code>, <code>src/utils/</code></td>
+<td>Deployment <code>cocolit-inference-server</code>, port 8000</td>
+<td>Downloads imagery for a box, runs the model, returns tree points as GeoJSON</td>
+</tr>
+<tr>
+<td>Database</td>
+<td><code>src/database/</code>, <code>src/dal/</code></td>
+<td>CloudNativePG <code>Cluster</code> <code>postgis-cluster</code></td>
+<td>Stores boxes, detected trees and low-confidence candidates for feedback</td>
+</tr>
+<tr>
+<td>Tunnel</td>
+<td>chart <code>cloudflared_deployment.yaml</code></td>
+<td>Deployment <code>cocolit-cloudflared</code></td>
+<td>Outbound connection to Cloudflare; the node needs no open inbound ports</td>
+</tr>
+<tr>
+<td>Overflow</td>
+<td>same inference image</td>
+<td>Cloud Run service <code>cocolit-inference</code></td>
+<td>Takes requests when the local inference pod is busy or down; scales to zero</td>
+</tr>
+</tbody>
+</table>
+<p>The deployment names keep their historical <code>streamlit</code> prefix; the frontend is
+no longer Streamlit.</p>
+<h2 id="frontend">Frontend<a class="headerlink" href="#frontend" title="Permanent link">&para;</a></h2>
+<p><code>main.py</code> is a FastAPI app with three jobs:</p>
+<ul>
+<li><strong>Serve the UI.</strong> <code>static/index.html</code>, <code>static/style.css</code> and
+  <code>static/js/app.js</code> are mounted at <code>/</code>. The UI is vanilla JavaScript with
+  Leaflet (maps), Turf.js (live area) and Leaflet.heat (heatmap). At build
+  time, <code>frontend.Dockerfile</code> stamps a version into the JS/CSS URLs because
+  Cloudflare caches those files for hours.</li>
+<li><strong>Run inference</strong> (<code>POST /api/inference</code>): validate the drawn shape, ask
+  the router for predictions, save them and return them in EPSG:4326.</li>
+<li><strong>Statistics</strong> (<code>GET /api/statistics</code>): totals, a per-country table and
+  heatmap points for every saved detection.</li>
+</ul>
+<p>It also exposes <code>GET /healthz</code> for Kubernetes probes and creates any missing
+database tables on startup.</p>
+<h3 id="drawing-a-box-staticjsappjs">Drawing a box (<code>static/js/app.js</code>)<a class="headerlink" href="#drawing-a-box-staticjsappjs" title="Permanent link">&para;</a></h3>
+<p>The box tool uses <strong>pointer events</strong>, so mouse, touch and pen share one
+code path:</p>
+<ol>
+<li><strong>Draw a box</strong> turns on draw mode and disables map panning and zooming,
+   so a drag draws instead of moving the map.</li>
+<li><code>pointerdown</code> records the start corner, and <code>pointermove</code> resizes the
+   rectangle and updates a tooltip with the live area. The tooltip turns red
+   above 0.5 km².</li>
+<li><code>pointerup</code> finishes the box; a tap (under 10 px of movement) is ignored.
+   Boxes over 0.5 km² are rejected in the browser. Otherwise the GeoJSON is
+   posted to <code>/api/inference</code>.</li>
+<li>Each detected tree is drawn as a small circle. The status line above the
+   map reports the result, or an error such as a rate limit (429) or an
+   invalid box (422).</li>
+</ol>
+<p><strong>Try another location</strong> cycles through <code>SPOTS</code> in <code>app.js</code>: dense coconut
+areas, each verified by running the model there, with village names from
+OpenStreetMap reverse geocoding.</p>
+<h3 id="local-first-routing-srcinference_routerpy">Local-first routing (<code>src/inference_router.py</code>)<a class="headerlink" href="#local-first-routing-srcinference_routerpy" title="Permanent link">&para;</a></h3>
+<p><code>InferenceRouter.predict()</code> decides where each request runs:</p>
+<ul>
+<li>If fewer than <code>INFERENCE_MAX_LOCAL</code> requests are in flight locally
+  (default 1), the request goes to the <strong>local</strong> inference service.</li>
+<li>If local is already busy, it goes straight to the <strong>overflow</strong> URL
+  (Cloud Run) instead of queueing.</li>
+<li>If local fails with a connection error, a timeout, or a 502/503/504, the
+  request is retried once on overflow. Other errors (for example 422, box
+  too big) are raised and not retried.</li>
+<li>Without an overflow URL, everything goes to local.</li>
+</ul>
+<p>The response header <code>X-Inference-Backend: local|overflow</code> shows which one
+served the request. Blocking work (HTTP and geopandas) runs in a thread via
+<code>asyncio.to_thread</code>, so one slow request doesn't freeze the frontend.</p>
+<h2 id="inference-api">Inference API<a class="headerlink" href="#inference-api" title="Permanent link">&para;</a></h2>
+<p><code>src/api/inference.py</code> exposes <code>POST /predict</code> (body:
+<code>{xmin, ymin, xmax, ymax}</code> in degrees) and <code>GET /health</code>. If
+<code>INFERENCE_API_KEY</code> is set (it is on Cloud Run), <code>/predict</code> requires a
+matching <code>X-Api-Key</code> header. Boxes that are too large or too small return 422.</p>
+<h3 id="pipeline-pipelinesinferencepy">Pipeline (<code>pipelines/inference.py</code>)<a class="headerlink" href="#pipeline-pipelinesinferencepy" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant API as /predict
+    participant P as InferencePipeline.run
+    participant T as tiles.stream_patches
+    participant G as Google tiles
+    participant M as OnnxDetector
+
+    API-&gt;&gt;P: BBox (degrees)
+    P-&gt;&gt;P: validate (625 m² to 5 km²)
+    P-&gt;&gt;T: MosaicPlan for the box
+    T-&gt;&gt;G: fetch all tiles, 16 at a time, row by row
+    loop each row of 640 px patches, as soon as its tiles have arrived
+        T--&gt;&gt;P: patches (BGR, zero-padded at the edges)
+        P-&gt;&gt;M: patch
+        M--&gt;&gt;P: boxes + confidence
+        P-&gt;&gt;P: box centres → EPSG:3857 metres
+    end
+    P--&gt;&gt;API: Predictions → GeoJSON FeatureCollection</code></pre>
+<ul>
+<li><strong>Tiles</strong> (<code>src/utils/tiles.py</code>). <code>MosaicPlan.for_bounds()</code> works out which
+  zoom-19 tiles cover the box and how they crop to the box exactly, using the
+  same maths and rounding as the earlier rasvec GeoTIFF pipeline.
+  <code>_download()</code> fetches and decodes tiles concurrently into one <code>uint8</code>
+  canvas. <code>stream_patches()</code> yields each row of 640 × 640 patches as soon as
+  the tiles under it have landed, so the model starts while later tiles are
+  still downloading. A missing tile (404) stays black; other HTTP errors fail
+  the request.</li>
+<li><strong>Model</strong> (<code>src/utils/detector.py</code>). <code>OnnxDetector</code> runs <code>models/best.onnx</code>
+  on onnxruntime and reproduces Ultralytics' pre- and post-processing:
+  BGR→RGB, scale to 0–1, confidence above 0.25, NMS at IoU 0.7, boxes clipped
+  to the patch. Its output matches Ultralytics exactly, without PyTorch in
+  the image.</li>
+<li><strong>Output.</strong> Box centres are mapped from patch pixels to EPSG:3857 metres
+  and returned as a GeoJSON FeatureCollection with a <code>conf</code> property. An
+  empty result is an empty FeatureCollection, not an error.</li>
+<li><strong>Telemetry.</strong> Every stage (<code>validate</code>, <code>detect</code>, <code>postprocess</code>) is timed
+  into <code>bbox.timings</code> and recorded as an OpenTelemetry span and histogram.
+  <code>tile_wait</code> and <code>model</code> split the <code>detect</code> time between waiting for tiles
+  and running the model. The calls are no-ops until <code>src/telemetry.py</code> is
+  wired in.</li>
+</ul>
+<p>The model card and its AGPL-3.0 licence are in <code>models/README.md</code>.</p>
+<h3 id="performance">Performance<a class="headerlink" href="#performance" title="Permanent link">&para;</a></h3>
+<p><code>scripts/benchmark_inference.py</code>, Apple M1, identical detections before and
+after:</p>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Earlier (rasvec GeoTIFFs + Ultralytics)</th>
+<th>Now</th>
+<th>Peak RSS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.1 km²</td>
+<td>0.38 s</td>
+<td>0.21 s</td>
+<td>263 MB</td>
+</tr>
+<tr>
+<td>1 km²</td>
+<td>1.70 s</td>
+<td>1.40 s</td>
+<td>365 MB</td>
+</tr>
+<tr>
+<td>2.5 km²</td>
+<td>4.52 s</td>
+<td>3.08 s</td>
+<td>525 MB</td>
+</tr>
+<tr>
+<td>4.9 km²</td>
+<td>8.04 s</td>
+<td>5.9 s</td>
+<td>723 MB</td>
+</tr>
+</tbody>
+</table>
+<p>About 70% of the time is now the model itself. The next speed-ups are an
+INT8 model (1.8× faster but only 90–96% agreement with FP32, so it needs
+validating on labelled data), batched inference (which needs a
+dynamic-batch export from the original <code>.pt</code> weights), and a cache for
+repeated areas.</p>
+<h2 id="database">Database<a class="headerlink" href="#database" title="Permanent link">&para;</a></h2>
+<p>PostGIS on CloudNativePG; tables are SQLModel classes in
+<code>src/database/model.py</code>, created on frontend startup.</p>
+<pre class="mermaid"><code>erDiagram
+    BoundingBox ||--o{ Pred : contains
+    BoundingBox ||--o{ Feedback : has
+    Pred ||--o| Feedback : "low confidence"
+    BoundingBox {
+        int id PK
+        string datetime
+        geometry geometry "POLYGON, EPSG:3857"
+    }
+    Pred {
+        int id PK
+        int id_bbox FK
+        float conf
+        geometry geometry "POINT, EPSG:3857"
+    }
+    Feedback {
+        int id PK
+        int id_pred FK
+        int id_bbox FK
+        int yes
+        int no
+    }</code></pre>
+<ul>
+<li><code>preds_bbox_to_database()</code> saves a box with all its trees. Trees with
+  confidence below 0.3 also get a <code>Feedback</code> row, collecting candidates for
+  review and retraining. A box with no trees is not stored, because the box
+  is saved through its predictions.</li>
+<li><code>read_data()</code> loads every prediction and joins it with the country
+  boundaries in <code>data/countries/</code> in Python. That's fine at the current size;
+  for larger data, move the aggregation into PostGIS (for example
+  <code>ST_Within</code> with a <code>GROUP BY</code>).</li>
+</ul>
+<h2 id="deployment">Deployment<a class="headerlink" href="#deployment" title="Permanent link">&para;</a></h2>
+<h3 id="kubernetes-helm-chart-infrachartscocolit">Kubernetes (Helm chart <code>infra/charts/cocolit</code>)<a class="headerlink" href="#kubernetes-helm-chart-infrachartscocolit" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Template</th>
+<th>Creates</th>
+<th>Enabled by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>inference_deployment.yaml</code>, <code>inference_service.yaml</code></td>
+<td>Inference pod and ClusterIP service (probes on <code>/health</code>, 1 Gi memory limit, no CPU limit)</td>
+<td>always</td>
+</tr>
+<tr>
+<td><code>streamlit_deployment.yaml</code>, <code>streamlit_service.yaml</code></td>
+<td>Frontend pod and service (probes on <code>/healthz</code>)</td>
+<td>always</td>
+</tr>
+<tr>
+<td><code>postgis_manifest.yaml</code>, <code>postgres-secret.yaml</code></td>
+<td>CloudNativePG cluster and credentials</td>
+<td>always (needs the CNPG operator)</td>
+</tr>
+<tr>
+<td><code>cloudflared_deployment.yaml</code></td>
+<td>Tunnel connector</td>
+<td><code>cloudflared.enabled</code></td>
+</tr>
+<tr>
+<td><code>inference_hpa.yaml</code></td>
+<td>Autoscaler</td>
+<td><code>inference.hpa.enabled</code> (off for one node)</td>
+</tr>
+<tr>
+<td><code>streamlit_ingress.yaml</code>, <code>clusterissuer.yaml</code></td>
+<td>Traefik ingress and Let's Encrypt</td>
+<td><code>ingress.enabled</code>, <code>clusterIssuer.enabled</code> (off behind the tunnel)</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong><code>values.yaml</code></strong> holds the defaults.</li>
+<li><strong><code>values-laptop.yaml</code></strong> is the current single-node setup: k3s on Colima
+  with locally built images (<code>pullPolicy: Never</code>), the tunnel on, ingress and
+  cert-manager off, and a multi-arch PostGIS image.</li>
+<li><strong>Credentials</strong> come from a gitignored <code>secrets-laptop.yaml</code>. The tunnel
+  token and the overflow URL and key are Kubernetes secrets created outside
+  the chart.</li>
+</ul>
+<p><code>scripts/deploy_laptop.sh</code> builds both images and runs <code>helm upgrade
+--install</code>, using a Helm container if <code>helm</code> isn't installed.</p>
+<h3 id="edge-cloudflare">Edge: Cloudflare<a class="headerlink" href="#edge-cloudflare" title="Permanent link">&para;</a></h3>
+<ul>
+<li>DNS for <code>prithvilabs.com</code>; the apex and <code>www</code> redirect to
+  <code>cocolit.prithvilabs.com</code>.</li>
+<li>The published tunnel route maps <code>cocolit.prithvilabs.com</code> to
+  <code>http://cocolit-streamlit-service.apps.svc.cluster.local:80</code>.</li>
+<li>A WAF rate-limiting rule on <code>/api/inference</code> allows 10 requests per 10 s
+  per IP, then blocks for 10 s.</li>
+</ul>
+<h3 id="overflow-cloud-run">Overflow: Cloud Run<a class="headerlink" href="#overflow-cloud-run" title="Permanent link">&para;</a></h3>
+<p><code>scripts/deploy_cloud_run.sh</code>:</p>
+<ul>
+<li>builds the inference image for amd64 with Cloud Build and pushes it to
+  Artifact Registry, keeping the newest 2 images;</li>
+<li>deploys it with 1 vCPU, 1 GiB, concurrency 1, min-instances 0,
+  max-instances 2 and an API key;</li>
+<li>writes the URL and key into the <code>inference-overflow</code> secret. Turn it on
+  with <code>--set overflow.enabled=true</code>.</li>
+</ul>
+<h3 id="target-node-oracle-cloud">Target node: Oracle Cloud<a class="headerlink" href="#target-node-oracle-cloud" title="Permanent link">&para;</a></h3>
+<p><code>infra/oci/</code> is OpenTofu for an Always Free Ampere A1 VM (arm64). It sets up
+a VCN that only allows SSH from one IP, a separate data volume mounted at
+k3s's storage path (so the database survives replacing the node), and k3s
+installed by cloud-init. <code>retry-apply.sh</code> retries until Oracle has capacity.</p>
+<h3 id="images">Images<a class="headerlink" href="#images" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Image</th>
+<th>Dockerfile</th>
+<th>Contents</th>
+<th>Size (compressed)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Inference</td>
+<td><code>inference.Dockerfile</code></td>
+<td>onnxruntime, NumPy, Pillow, httpx, FastAPI, the model</td>
+<td>≈111 MB</td>
+</tr>
+<tr>
+<td>Frontend</td>
+<td><code>frontend.Dockerfile</code></td>
+<td>FastAPI, geopandas, SQLModel/GeoAlchemy2, psycopg 3, static UI</td>
+<td>≈160 MB</td>
+</tr>
+</tbody>
+</table>
+<p>Both use only pure wheels (no compilers or GDAL), run as UID 10001, and
+build for arm64 and amd64.</p>
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Service</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>INFERENCE_URL</code></td>
+<td>frontend</td>
+<td>Local inference endpoint (set by the chart)</td>
+</tr>
+<tr>
+<td><code>INFERENCE_OVERFLOW_URL</code></td>
+<td>frontend</td>
+<td>Cloud Run <code>/predict</code> URL; unset = no overflow</td>
+</tr>
+<tr>
+<td><code>INFERENCE_API_KEY</code></td>
+<td>both</td>
+<td>Shared secret; the frontend sends it, inference requires it if set</td>
+</tr>
+<tr>
+<td><code>INFERENCE_MAX_LOCAL</code></td>
+<td>frontend</td>
+<td>Concurrent local requests before overflowing (default 1)</td>
+</tr>
+<tr>
+<td><code>POSTGRES_HOST</code>, <code>POSTGRES_DATABASE</code>, <code>POSTGRES_USERNAME</code>, <code>POSTGRES_PASSWORD</code></td>
+<td>frontend</td>
+<td>Database connection (or <code>local_database</code> with a full URL); unset = no database</td>
+</tr>
+<tr>
+<td><code>SMTP_FROMADDR</code>, <code>SMTP_TOADDRS</code>, <code>SMTP_USERNAME</code>, <code>SMTP_PASSWORD</code></td>
+<td>frontend</td>
+<td>Error emails</td>
+</tr>
+<tr>
+<td><code>ORT_THREADS</code></td>
+<td>inference</td>
+<td>onnxruntime intra-op threads (default: all cores)</td>
+</tr>
+<tr>
+<td><code>PORT</code></td>
+<td>inference</td>
+<td>Listen port (Cloud Run sets it; default 8000)</td>
+</tr>
+<tr>
+<td><code>OTEL_EXPORTER_OTLP_ENDPOINT</code></td>
+<td>both</td>
+<td>Enables OpenTelemetry export once wired in (<code>otel.endpoint</code> in the chart)</td>
+</tr>
+</tbody>
+</table>
+<p><code>configs/config.yml</code> sets the model path (<code>model.path</code>) and the number of
+concurrent tile downloads (<code>inference.tile_workers</code>, default 16).</p>
+<h2 id="where-to-change-things">Where to change things<a class="headerlink" href="#where-to-change-things" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>To change…</th>
+<th>Edit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Page text, layout, sections</td>
+<td><code>static/index.html</code></td>
+</tr>
+<tr>
+<td>Colours, spacing, mobile layout</td>
+<td><code>static/style.css</code> (palette in the <code>:root</code> variables)</td>
+</tr>
+<tr>
+<td>Drawing, size limit in the UI, marker colours, status messages, featured locations (<code>SPOTS</code>)</td>
+<td><code>static/js/app.js</code></td>
+</tr>
+<tr>
+<td>API routes, validation, saving</td>
+<td><code>main.py</code></td>
+</tr>
+<tr>
+<td>When requests overflow to Cloud Run</td>
+<td><code>src/inference_router.py</code>, <code>overflow.maxLocal</code> in the chart</td>
+</tr>
+<tr>
+<td>Box size limits (server)</td>
+<td><code>BBox.valid_bbox()</code> in <code>src/data_struct/bbox.py</code></td>
+</tr>
+<tr>
+<td>Tile source, zoom, download concurrency</td>
+<td><code>src/utils/tiles.py</code>, <code>configs/config.yml</code></td>
+</tr>
+<tr>
+<td>Detection thresholds (confidence, NMS)</td>
+<td><code>OnnxDetector</code> in <code>src/utils/detector.py</code></td>
+</tr>
+<tr>
+<td>The model</td>
+<td>replace <code>models/best.onnx</code> (same 1×3×640×640 input) and update <code>models/README.md</code></td>
+</tr>
+<tr>
+<td>Tables and stored fields</td>
+<td><code>src/database/model.py</code>, <code>src/dal/preds.py</code></td>
+</tr>
+<tr>
+<td>Resources, probes, optional components</td>
+<td><code>infra/charts/cocolit/values*.yaml</code> and templates</td>
+</tr>
+</tbody>
+</table>
+<h2 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>pytest<span class="w"> </span>tests<span class="w"> </span>--ignore<span class="o">=</span>tests/integration<span class="w">      </span><span class="c1"># unit tests, no network</span>
+pytest<span class="w"> </span>tests/integration<span class="w">                      </span><span class="c1"># real tiles + model (network)</span>
+python<span class="w"> </span>-m<span class="w"> </span>scripts.benchmark_inference<span class="w"> </span>--sizes<span class="w"> </span><span class="m">0</span>.1<span class="w"> </span><span class="m">0</span>.5<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">2</span>.5
+</code></pre></div>
+<p>The unit tests cover:</p>
+<ul>
+<li>tile placement, cropping and georeferencing against the rasvec formulas;</li>
+<li>streaming patches matching the download-then-slice result;</li>
+<li>conversion from pixels to map coordinates;</li>
+<li>empty results;</li>
+<li>GeoJSON parity with geopandas;</li>
+<li>routing and overflow decisions;</li>
+<li>API key checks and 422 responses.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/davnish/cocolit" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://www.linkedin.com/in/nischal-singh/" target="_blank" rel="noopener" title="www.linkedin.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3M135.4 416H69V202.2h66.5V416zM102.2 96a38.5 38.5 0 1 1 0 77 38.5 38.5 0 1 1 0-77m282.1 320h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://cocolit.prithvilabs.com" target="_blank" rel="noopener" title="cocolit.prithvilabs.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M16.36 14c.08-.66.14-1.32.14-2s-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2m-5.15 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95a8.03 8.03 0 0 1-4.33 3.56M14.34 14H9.66c-.1-.66-.16-1.32-.16-2s.06-1.35.16-2h4.68c.09.65.16 1.32.16 2s-.07 1.34-.16 2M12 19.96c-.83-1.2-1.5-2.53-1.91-3.96h3.82c-.41 1.43-1.08 2.76-1.91 3.96M8 8H5.08A7.92 7.92 0 0 1 9.4 4.44C8.8 5.55 8.35 6.75 8 8m-2.92 8H8c.35 1.25.8 2.45 1.4 3.56A8 8 0 0 1 5.08 16m-.82-2C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2s.06 1.34.14 2M12 4.03c.83 1.2 1.5 2.54 1.91 3.97h-3.82c.41-1.43 1.08-2.77 1.91-3.97M18.92 8h-2.95a15.7 15.7 0 0 0-1.38-3.56c1.84.63 3.37 1.9 4.33 3.56M12 2C6.47 2 2 6.5 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.top", "toc.follow", "content.code.copy"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  </body>
+</html>
