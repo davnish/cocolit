@@ -18,9 +18,26 @@ in a few seconds, on a plain CPU.
 **[Architecture](https://davnish.github.io/cocolit/architecture/)** ·
 **[Releases](https://github.com/davnish/cocolit/releases)**
 
-![A box drawn over a coconut plantation in Sri Lanka, with 175 trees marked](misc/screenshot.jpg)
-
 </div>
+
+## 👋 About
+
+Cocolit began as a hobby project to explore what it takes to build a
+geospatial ML app end to end. Along the way it became a place to try things
+out: saving predictions to a database, running services on Kubernetes,
+networking, and managing cloud infrastructure as code with **OpenTofu**.
+
+### The setup today
+
+A **YOLO11n** model, trained to spot coconut trees, runs on **onnxruntime**
+behind a **FastAPI** service. A second FastAPI service serves the **Leaflet**
+map and saves every scan to **PostGIS**.
+
+All three (the website, the detector and the database) run on a single
+**k3s** Kubernetes node. Visitors reach it through a **Cloudflare Tunnel**, so
+the node never opens a port to the internet, and the database stays private
+inside the cluster. When the detector is busy, requests spill over to a backup
+copy on **Google Cloud Run** that costs nothing when idle.
 
 ## Contents
 
@@ -33,6 +50,7 @@ in a few seconds, on a plain CPU.
 - [How the project evolved](#-how-the-project-evolved)
 - [What's next](#-whats-next)
 - [License](#-license)
+- [Screenshot](#-screenshot)
 
 ## ✨ Try it in 30 seconds
 
@@ -173,8 +191,7 @@ in the [deployment guide](https://davnish.github.io/cocolit/architecture/#deploy
 
 ## 📜 How the project evolved
 
-Cocolit started as a small experiment and was rebuilt a few times as it
-grew. Each stage solved the biggest problem of the one before.
+Cocolit was rebuilt a few times as it grew. Each stage solved the biggest problem of the one before.
 
 | When | Stage | What changed |
 |---|---|---|
@@ -221,6 +238,10 @@ Ideas or bugs? [Open an issue](https://github.com/davnish/cocolit/issues).
   [YOLO11n](https://docs.ultralytics.com/models/yolo11/) by Ultralytics, trained
   to find coconut trees. See [models/README.md](models/README.md).
 - Satellite imagery © Google.
+
+## 📸 Screenshot
+
+![A box drawn over a coconut plantation in Sri Lanka, with 175 trees marked](misc/screenshot.jpg)
 
 <div align="center">
 
