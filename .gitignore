@@ -225,3 +225,7 @@ crash.*.log
 k3s_config.yaml
 # Helm values with credentials
 infra/charts/cocolit/secrets-*.yaml
+
+# editor swap files
+*.swp
+*.swo
