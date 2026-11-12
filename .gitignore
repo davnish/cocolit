@@ -179,6 +179,9 @@ cython_debug/
 
 #models
 models/*
+# ...but publish the model's license and description with the weights
+!models/LICENSE
+!models/README.md
 *.pt 
 
 .DS_Store

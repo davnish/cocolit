@@ -17,7 +17,8 @@ FROM python:3.11-slim-bookworm
 LABEL org.opencontainers.image.title="inference-server"
 LABEL org.opencontainers.image.description="cocolit coconut-tree detection API"
 LABEL org.opencontainers.image.source="https://github.com/davnish/cocolit"
-LABEL org.opencontainers.image.licenses="MIT"
+# Code is MIT; the bundled models/best.onnx (YOLO11n, Ultralytics) is AGPL-3.0.
+LABEL org.opencontainers.image.licenses="MIT AND AGPL-3.0"
 
 ENV PYTHONUNBUFFERED=1 \
     PATH="/opt/venv/bin:$PATH" \
