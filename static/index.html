@@ -4,111 +4,136 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cocolit: Coconut Tree Detection</title>
-    <!-- Modern Fonts -->
+    <meta name="description" content="Count coconut trees in satellite imagery: draw a box on the map and a detection model marks every coconut tree.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Leaflet CSS -->
+
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-    <!-- Leaflet Geoman CSS -->
-    <!-- Leaflet Control Geocoder CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
-    
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css?v=__ASSET_VERSION__">
-    
 </head>
 <body>
-    <div class="app-container">
-        <!-- Header Section -->
-        <header class="header">
-            <h1 class="logo">Coco<span class="highlight">lit</span> 🌴</h1>
-            <p class="subtitle">Lets detect some coconuts! 😎</p>
-            <div class="caption">
-                The map is default centered on 'Divulgasanga, Sri Lanka', chosen for its high density of coconut trees.
-                To start, tap the box tool on the left, then drag a box over the trees with your finger or mouse.
-            </div>
-        </header>
+    <!-- Top bar: brand left, links right, one aligned row -->
+    <header class="topbar">
+        <div class="topbar-inner">
+            <a class="brand" href="/" aria-label="prithvilabs Cocolit home">
+                <span class="brand-org">prithvilabs</span>
+                <span class="brand-sep" aria-hidden="true">·</span>
+                <span class="brand-name">Coco<span class="highlight">lit</span></span>
+                <span class="brand-mark" aria-hidden="true">🌴</span>
+            </a>
+            <nav class="social-links" aria-label="Project links">
+                <a href="https://github.com/davnish/cocolit" target="_blank" rel="noopener" aria-label="Cocolit source code on GitHub" title="Source code on GitHub">
+                    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2c-3.2.7-3.87-1.37-3.87-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.18 1.84 1.18 3.1 0 4.42-2.69 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"/></svg>
+                </a>
+                <a href="https://www.linkedin.com/in/nischal-singh/" target="_blank" rel="noopener" aria-label="Nischal Singh on LinkedIn" title="LinkedIn">
+                    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="currentColor"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13ZM7.12 20.45H3.56V9h3.56v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0Z"/></svg>
+                </a>
+            </nav>
+        </div>
+    </header>
 
-        <!-- Main Map Area -->
-        <section class="main-map-section">
+    <main class="app-container">
+        <!-- Intro -->
+        <section class="intro">
+            <h1>Count coconut trees from space</h1>
+            <p class="lede">Draw a box on the satellite map and a detection model marks every coconut tree inside it.</p>
+            <ol class="steps">
+                <li><span class="step-num">1</span><span><strong>Find an area</strong> by panning or searching</span></li>
+                <li><span class="step-num">2</span><span><strong>Draw a box</strong> by dragging over the trees</span></li>
+                <li><span class="step-num">3</span><span><strong>See the count</strong> with each tree marked</span></li>
+            </ol>
+        </section>
+
+        <!-- Map card: toolbar + map -->
+        <section class="map-card" aria-label="Detection map">
+            <div class="map-toolbar">
+                <button id="draw-btn" class="btn btn-primary" type="button" aria-pressed="false">
+                    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="3 2"/></svg>
+                    <span class="btn-label">Draw a box</span>
+                </button>
+                <button id="spot-btn" class="btn btn-ghost" type="button" title="Jump to another area with many coconut trees">
+                    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z"/></svg>
+                    <span>Try another location</span>
+                </button>
+                <button id="clear-btn" class="btn btn-ghost" type="button" disabled>Clear</button>
+                <p id="map-status" class="map-status" role="status" aria-live="polite">
+                    Now at <strong>Pahala Mawathagama, Kurunegala, Sri Lanka</strong>. Press <strong>Draw a box</strong> and drag over the trees, or <strong>Try another location</strong>.
+                </p>
+            </div>
             <div class="map-wrapper">
                 <div id="main-map"></div>
-                <!-- Loading Overlay -->
                 <div id="loading-overlay" class="hidden">
                     <div class="spinner"></div>
-                    <p>Running Inference...</p>
+                    <p>Detecting trees…</p>
                 </div>
             </div>
         </section>
 
-        <!-- Metrics Area -->
-        <section class="metrics-section">
+        <!-- Results of this session -->
+        <section class="metrics-section" aria-label="Your results">
             <div class="metric-card">
-                <h3>Total Selected Area (Km²)</h3>
-                <p id="metric-area" class="metric-value">0.00</p>
+                <h3>Area scanned</h3>
+                <p class="metric-value"><span id="metric-area">0.000</span><span class="metric-unit">km²</span></p>
             </div>
             <div class="metric-card">
-                <h3>Total Count</h3>
-                <p id="metric-count" class="metric-value">0</p>
+                <h3>Trees found</h3>
+                <p class="metric-value"><span id="metric-count">0</span></p>
             </div>
             <div class="metric-card">
-                <h3>Density (per Km²)</h3>
-                <p id="metric-density" class="metric-value">0.00</p>
+                <h3>Trees per km²</h3>
+                <p class="metric-value"><span id="metric-density">0</span></p>
             </div>
         </section>
 
-        <!-- Statistics Section -->
+        <!-- Everyone's results -->
         <section class="stats-section">
-            <h2 class="section-title">Statistics 📊</h2>
+            <div class="section-head">
+                <h2 class="section-title">Community statistics</h2>
+                <p class="section-sub">Every area anyone has scanned with Cocolit.</p>
+            </div>
             <div class="stats-grid">
-                <!-- Statistics Summary -->
                 <div class="stats-summary">
                     <div class="stat-item">
-                        <span class="stat-label">Ran in countries</span>
-                        <span id="stat-countries" class="stat-value">0</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Total trees detected</span>
+                        <span class="stat-label">Trees detected</span>
                         <span id="stat-total-trees" class="stat-value">0</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-label">Total locations</span>
+                        <span class="stat-label">Areas scanned</span>
                         <span id="stat-locations" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Countries</span>
+                        <span id="stat-countries" class="stat-value">0</span>
                     </div>
                     <div class="table-container">
                         <table id="countries-table">
                             <thead>
-                                <tr>
-                                    <th>Country</th>
-                                    <th>Trees Detected</th>
-                                </tr>
+                                <tr><th>Country</th><th class="num">Trees</th></tr>
                             </thead>
-                            <tbody>
-                                <!-- Populated by JS -->
-                            </tbody>
+                            <tbody></tbody>
                         </table>
                     </div>
                 </div>
-                
-                <!-- Heatmap Area -->
                 <div class="heatmap-wrapper">
                     <div id="heatmap-map"></div>
                 </div>
             </div>
         </section>
-    </div>
+    </main>
 
-    <!-- Scripts -->
-    <!-- Turf.js for Area calculations -->
+    <footer class="footer">
+        Built by <a href="https://www.linkedin.com/in/nischal-singh/" target="_blank" rel="noopener">Nischal Singh</a>
+        · <a href="https://github.com/davnish/cocolit" target="_blank" rel="noopener">Source on GitHub</a>
+        · Model: <a href="https://github.com/davnish/cocolit/blob/frontend/models/README.md" target="_blank" rel="noopener">YOLO11n</a> by Ultralytics (AGPL-3.0)
+        · Imagery © Google
+    </footer>
+
     <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <!-- Leaflet Heatmap -->
     <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
-    <!-- Leaflet Control Geocoder JS -->
     <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
-    <!-- Custom JS App -->
     <script src="js/app.js?v=__ASSET_VERSION__"></script>
 </body>
 </html>
