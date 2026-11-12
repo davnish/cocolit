@@ -1,0 +1,3 @@
+# Copy to terraform.tfvars (gitignored) and fill in.
+tenancy_ocid     = "ocid1.tenancy.oc1..aaaaaaaannyivyvnair2nghgllinjrhzs7szsvvkqxsdgb64fjlh4cxsjgeq"
+ssh_allowed_cidr = "x.x.x.x/32" # curl -s https://checkip.amazonaws.com

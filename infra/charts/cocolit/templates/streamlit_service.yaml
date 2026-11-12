@@ -8,4 +8,4 @@ spec:
   ports:
     - port: {{ .Values.streamlitService.ports.port }}         # Port exposed to the Ingress
       targetPort: {{ .Values.streamlitService.ports.targetPort }} # Port Streamlit is running on
-  type: {{ .Values.streamlitService.type }}
+  type: {{ .Values.streamlitService.ports.type | default "ClusterIP" }}

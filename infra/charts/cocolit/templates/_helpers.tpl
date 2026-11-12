@@ -60,3 +60,19 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+OpenTelemetry env for a container. Empty unless .Values.otel.endpoint is set.
+Usage: include "cocolit.otelEnv" (dict "root" . "service" "cocolit-frontend")
+*/}}
+{{- define "cocolit.otelEnv" -}}
+{{- $otel := .root.Values.otel -}}
+{{- if $otel.endpoint }}
+- name: OTEL_SERVICE_NAME
+  value: {{ .service | quote }}
+- name: OTEL_EXPORTER_OTLP_ENDPOINT
+  value: {{ $otel.endpoint | quote }}
+- name: OTEL_RESOURCE_ATTRIBUTES
+  value: {{ printf "deployment.environment=%s" $otel.environment | quote }}
+{{- end }}
+{{- end }}

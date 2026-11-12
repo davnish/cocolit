@@ -14,17 +14,28 @@ spec:
       labels:
         app: inference-server
     spec:
+      securityContext:
+        runAsNonRoot: true
       containers:
       - name: inference-server
-        image: "{{ .Values.inference.image.repository}}:{{ .Values.inference.image.tag }}"
+        image: "{{ .Values.inference.image.repository }}:{{ .Values.inference.image.tag }}"
+        imagePullPolicy: {{ .Values.inference.image.pullPolicy | default "IfNotPresent" }}
         ports:
         - containerPort: 8000
+        env:
+        {{- if .Values.inference.ortThreads }}
+        - name: ORT_THREADS
+          value: {{ .Values.inference.ortThreads | quote }}
+        {{- end }}
+        {{- include "cocolit.otelEnv" (dict "root" . "service" "cocolit-inference") | nindent 8 }}
+        readinessProbe:
+          httpGet: { path: /health, port: 8000 }
+          periodSeconds: 10
+        livenessProbe:
+          httpGet: { path: /health, port: 8000 }
+          initialDelaySeconds: 20
+          periodSeconds: 20
+          timeoutSeconds: 5
+          failureThreshold: 3
         resources:
-            requests:
-              cpu: {{ .Values.inference.resources.requests.cpu }}
-              memory: {{ .Values.inference.resources.requests.memory }}
-
-            limits:
-              cpu: {{ .Values.inference.resources.limits.cpu }}
-              memory: {{ .Values.inference.resources.limits.memory }}
-
+          {{- toYaml .Values.inference.resources | nindent 10 }}

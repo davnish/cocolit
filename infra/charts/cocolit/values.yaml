@@ -1,31 +1,74 @@
 # Default values for cocolit.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
+# Laptop / single-node overrides: values-laptop.yaml (and values-oci.yaml later).
 
 streamlit:
-  replicaCount:  1
+  replicaCount: 1
   image:
     repository: ghcr.io/davnish/streamlit-server
     tag: 850dfd9
+    pullPolicy: IfNotPresent
   service:
     ports: 8501
+  resources:
+    requests:
+      cpu: 50m
+      memory: 192Mi
+    limits:
+      memory: 512Mi
 
 inference:
   replicaCount: 1
   image:
-    repository: ghcr.io/davnish/inference-server 
+    repository: ghcr.io/davnish/inference-server
     tag: 3e7d5d0
+    pullPolicy: IfNotPresent
   service:
     ports: 8000
+  # onnxruntime intra-op threads; 0/empty = all visible cores.
+  ortThreads: ""
+  # No CPU limit on purpose: CFS throttling makes model latency spiky.
   resources:
     requests:
-      cpu: "400m"
-      memory: "700Mi"
+      cpu: 400m
+      memory: 512Mi
     limits:
-      cpu: "850m"
-      memory: "850Mi"
+      memory: 1Gi  # a 4.9 km² request peaks at ~720 MB
+  hpa:
+    enabled: false  # replicas and the HPA must not both manage the count
+    minReplicas: 1
+    maxReplicas: 10
+    averageCPUUtilization: 60
 
+# Cloud Run overflow: when the local inference pod is busy (maxLocal requests in
+# flight) or down, the frontend sends requests to Cloud Run instead.
+# The secret (keys: url, apiKey) is created outside the chart, see docs/deploy-laptop.md.
+overflow:
+  enabled: false
+  secretName: inference-overflow
+  maxLocal: 1
 
+# Cloudflare Tunnel (token secret key: token), created outside the chart.
+cloudflared:
+  enabled: false
+  replicaCount: 1
+  image: cloudflare/cloudflared:2025.6.1
+  tokenSecret: cloudflared-token
+
+# OpenTelemetry (OTLP/HTTP), e.g. Grafana Alloy in-cluster. Empty = off.
+otel:
+  endpoint: ""
+  environment: production
+
+postgis:
+  image: ghcr.io/cloudnative-pg/postgis:16
+  storageSize: 10Gi
+  storageClass: ""
+  resources:
+    requests:
+      cpu: 50m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
 
 # service
 
@@ -36,7 +79,7 @@ streamlitService:
     port: 80
     targetPort: 8501
     type: ClusterIP
-    
+
 inferenceService:
   selector:
     app: inference-server
@@ -45,14 +88,15 @@ inferenceService:
     targetPort: 8000
     type: ClusterIP
 
-# clusterissuer
+# clusterissuer (cert-manager; not needed behind a Cloudflare Tunnel)
 clusterIssuer:
+  enabled: true
   name: letsencrypt-prod
   email: nischal.singh38@gmail.com
   server: https://acme-v02.api.letsencrypt.org/directory
   ingressClass: traefik
 
-# Ingress
+# Ingress (not needed behind a Cloudflare Tunnel)
 ingress:
   enabled: true
   name: streamlit-ingress
@@ -69,7 +113,6 @@ smtp:
   to: ""
   username: ""
   password: ""
-
 
 # Database credentials will be filled in by the credentials files, these values will be used in auth section
 database:
