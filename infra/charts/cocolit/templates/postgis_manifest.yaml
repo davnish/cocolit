@@ -2,23 +2,24 @@ apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: postgis-cluster
-  namespace: apps
 spec:
   instances: 1
-  imageName: ghcr.io/cloudnative-pg/postgis:16
-  
-  # Reference the same secret for both, or separate them if needed
-  superuserSecret:
-    name: postgres-credentials
-  
+  imageName: {{ .Values.postgis.image }}
+
   bootstrap:
     initdb:
-      database: cocolitdb
-      owner: cocolit_user
+      database: {{ .Values.database.database | quote }}
+      owner: {{ .Values.database.username | quote }}
       secret:
         name: postgres-credentials
-      postInitSQL:
+      postInitApplicationSQL:
         - CREATE EXTENSION IF NOT EXISTS postgis;
 
   storage:
-    size: 10Gi
+    size: {{ .Values.postgis.storageSize }}
+    {{- with .Values.postgis.storageClass }}
+    storageClass: {{ . }}
+    {{- end }}
+
+  resources:
+    {{- toYaml .Values.postgis.resources | nindent 4 }}

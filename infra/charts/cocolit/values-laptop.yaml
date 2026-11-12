@@ -1,0 +1,41 @@
+# Laptop k3s (Colima): locally built images, no ingress/cert-manager,
+# public access only through the Cloudflare Tunnel.
+#   helm upgrade --install cocolit infra/charts/cocolit -n apps --create-namespace \
+#     -f infra/charts/cocolit/values-laptop.yaml -f infra/charts/cocolit/secrets-laptop.yaml
+streamlit:
+  image:
+    repository: cocolit/frontend
+    tag: dev
+    pullPolicy: Never
+
+inference:
+  image:
+    repository: cocolit/inference
+    tag: dev
+    pullPolicy: Never
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      memory: 1Gi
+
+clusterIssuer:
+  enabled: false
+ingress:
+  enabled: false
+
+postgis:
+  # Multi-arch (arm64 + amd64); the plain :16/:17 tags are amd64-only.
+  image: ghcr.io/cloudnative-pg/postgis:17-3.6-standard-trixie
+  storageSize: 2Gi
+
+otel:
+  environment: laptop
+
+# Token secret: kubectl -n apps create secret generic cloudflared-token --from-literal=token=...
+cloudflared:
+  enabled: true
+# Turn on once the Cloud Run secret exists (scripts/deploy_cloud_run.sh).
+overflow:
+  enabled: false

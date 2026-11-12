@@ -1,0 +1,37 @@
+#cloud-config
+# Rendered by main.tf (templatefile). Runs once on first boot.
+package_update: true
+packages:
+  - curl
+  - open-iscsi
+  - nfs-common
+
+write_files:
+  - path: /usr/local/sbin/mount-data-volume.sh
+    permissions: "0755"
+    content: |
+      #!/bin/bash
+      # The block volume is attached after the instance boots; wait up to 10 min.
+      set -euo pipefail
+      DEV=/dev/oracleoci/oraclevdb
+      MNT=/var/lib/rancher/k3s/storage
+      for _ in $(seq 1 120); do [ -e "$DEV" ] && break; sleep 5; done
+      [ -e "$DEV" ] || { echo "data volume $DEV never appeared" >&2; exit 1; }
+      # Format only if empty, so a reattached volume keeps its data.
+      blkid "$DEV" >/dev/null 2>&1 || mkfs.ext4 -L cocolit-data "$DEV"
+      mkdir -p "$MNT"
+      grep -q "LABEL=cocolit-data" /etc/fstab || \
+        echo "LABEL=cocolit-data $MNT ext4 defaults,_netdev,nofail 0 2" >> /etc/fstab
+      mountpoint -q "$MNT" || mount "$MNT"
+
+runcmd:
+  # Oracle's Ubuntu images ship iptables REJECT rules that break k3s pod
+  # networking. Inbound traffic is already restricted by the VCN security list.
+  - iptables -D INPUT -j REJECT --reject-with icmp-host-prohibited || true
+  - iptables -D FORWARD -j REJECT --reject-with icmp-host-prohibited || true
+  - netfilter-persistent save || true
+  - /usr/local/sbin/mount-data-volume.sh
+  - >-
+    curl -sfL https://get.k3s.io |
+    INSTALL_K3S_CHANNEL="${k3s_channel}" INSTALL_K3S_VERSION="${k3s_version}"
+    sh -s - server --write-kubeconfig-mode 600

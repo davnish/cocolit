@@ -220,3 +220,5 @@ crash.*.log
 
 # kubeconfig
 k3s_config.yaml
+# Helm values with credentials
+infra/charts/cocolit/secrets-*.yaml

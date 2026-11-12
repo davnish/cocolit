@@ -14,31 +14,53 @@ spec:
       labels:
         app: streamlit-server
     spec:
+      securityContext:
+        runAsNonRoot: true
       containers:
       - name: streamlit-server
         image: "{{ .Values.streamlit.image.repository }}:{{ .Values.streamlit.image.tag }}"
+        imagePullPolicy: {{ .Values.streamlit.image.pullPolicy | default "IfNotPresent" }}
         ports:
         - containerPort: 8501
-        
         env:
         - name: INFERENCE_URL
-          value: "http://cocolit-inference-service/predict" 
-
+          value: "http://{{ include "cocolit.fullname" . }}-inference-service/predict"
+        - name: INFERENCE_MAX_LOCAL
+          value: {{ .Values.overflow.maxLocal | quote }}
+        {{- if .Values.overflow.enabled }}
+        - name: INFERENCE_OVERFLOW_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.overflow.secretName }}
+              key: url
+        - name: INFERENCE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.overflow.secretName }}
+              key: apiKey
+        {{- end }}
         - name: POSTGRES_HOST
-          value: {{ .Values.database.host }}
-
+          value: {{ .Values.database.host | quote }}
         - name: POSTGRES_USERNAME
-          value: {{ .Values.database.username }}
-
+          value: {{ .Values.database.username | quote }}
         - name: POSTGRES_DATABASE
-          value: {{ .Values.database.database }}
-              
+          value: {{ .Values.database.database | quote }}
         - name: POSTGRES_PASSWORD
           valueFrom:
             secretKeyRef:
               name: postgres-credentials
               key: password
-
+        {{- include "cocolit.otelEnv" (dict "root" . "service" "cocolit-frontend") | nindent 8 }}
         envFrom:
         - secretRef:
             name: smtp-credentials
+        readinessProbe:
+          httpGet: { path: /healthz, port: 8501 }
+          periodSeconds: 10
+        livenessProbe:
+          httpGet: { path: /healthz, port: 8501 }
+          initialDelaySeconds: 15
+          periodSeconds: 20
+          timeoutSeconds: 5
+        resources:
+          {{- toYaml .Values.streamlit.resources | nindent 10 }}
