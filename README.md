@@ -18,9 +18,21 @@ in a few seconds, on a plain CPU.
 **[Architecture](https://davnish.github.io/cocolit/architecture/)** ·
 **[Releases](https://github.com/davnish/cocolit/releases)**
 
-![A box drawn over a coconut plantation in Sri Lanka, with 175 trees marked](misc/screenshot.jpg)
-
 </div>
+
+## 👋 About
+
+Cocolit is a small, end-to-end geospatial ML app. A **YOLO11n** model,
+trained to spot coconut trees, runs on **onnxruntime** behind a **FastAPI**
+service. A second FastAPI service serves the **Leaflet** map and saves every
+scan to **PostGIS**.
+
+All three (the website, the detector and the database) run on a single
+**k3s** Kubernetes node. Visitors reach it through a **Cloudflare Tunnel**, so
+the node never opens a port to the internet, and the database stays private
+inside the cluster. When the detector is busy, requests spill over to a backup
+copy on **Google Cloud Run** that costs nothing when idle. The whole setup is
+designed to run for free.
 
 ## Contents
 
@@ -33,6 +45,7 @@ in a few seconds, on a plain CPU.
 - [How the project evolved](#-how-the-project-evolved)
 - [What's next](#-whats-next)
 - [License](#-license)
+- [Screenshot](#-screenshot)
 
 ## ✨ Try it in 30 seconds
 
@@ -58,11 +71,6 @@ in India and Mexico, or pan to any place on Earth.
 | 📱 **Phone friendly** | Everything works with touch |
 
 ## 🛠️ How it works
-
-**In one line:** everything (the website, the detector and the PostGIS
-database) runs on a single **k3s** Kubernetes node, and all traffic reaches it
-through a **Cloudflare Tunnel**, so no port is ever open to the internet. The
-database stays private inside the cluster; only the website talks to it.
 
 ```mermaid
 flowchart LR
@@ -226,6 +234,10 @@ Ideas or bugs? [Open an issue](https://github.com/davnish/cocolit/issues).
   [YOLO11n](https://docs.ultralytics.com/models/yolo11/) by Ultralytics, trained
   to find coconut trees. See [models/README.md](models/README.md).
 - Satellite imagery © Google.
+
+## 📸 Screenshot
+
+![A box drawn over a coconut plantation in Sri Lanka, with 175 trees marked](misc/screenshot.jpg)
 
 <div align="center">
 
