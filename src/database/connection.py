@@ -24,6 +24,10 @@ def get_engine():
     else:
         return None
     
+    # Always use psycopg 3: SQLAlchemy 2.0 maps plain postgresql:// to psycopg2
+    # (not installed), 2.1 maps it to psycopg. Being explicit works on both.
+    if connection_string.startswith(("postgresql://", "postgres://")):
+        connection_string = "postgresql+psycopg://" + connection_string.split("://", 1)[1]
     engine = create_engine(connection_string)
     return engine
 

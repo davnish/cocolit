@@ -71,7 +71,7 @@ def test_run_converts_boxes_to_3857_points_and_times_stages(mocker):
     points = list(zip(bbox.preds.x, bbox.preds.y))
     # patch (0,0): x = 1000 + 0.5*640, y = 5000 - 0.25*640
     # patch (1,1): left = 1000 + 640, top = 5000 - 640; x = left + 0, y = top - 640
-    assert points == pytest.approx([(1320.0, 4840.0), (1640.0, 3720.0)])
+    assert [c for pt in points for c in pt] == pytest.approx([1320.0, 4840.0, 1640.0, 3720.0])
 
     for stage in ["validate", "detect", "postprocess", "tile_wait", "model"]:
         assert bbox.timings[stage] >= 0

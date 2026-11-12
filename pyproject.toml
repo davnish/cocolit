@@ -2,15 +2,40 @@
 name = "cocolit"
 version = "0.1.0"
 description = "lets detect some coconuts!"
+requires-python = ">=3.11"
+# Union of requirements_inference.txt and requirements_streamlit.txt (the
+# Dockerfiles install from those; this is for local `uv sync`).
 dependencies = [
+    "onnxruntime==1.23.2",
+    "numpy==1.26.4",
+    "pillow>=10",
+    "httpx>=0.28",
+    "pydantic>=2",
+    "pyyaml>=6",
     "fastapi>=0.128.0",
-    "gdal>=3.12.1",
-    "onnxruntime>=1.23.2",
+    "uvicorn>=0.40.0",
     "orjson>=3.11.5",
     "python-dotenv>=1.2.1",
+    "python-multipart",
+    "requests",
+    "geopandas>=1.0",
+    "shapely>=2.0",
+    "pyproj>=3.6",
     "sqlmodel>=0.0.31",
-    "uvicorn>=0.40.0",
+    "geoalchemy2",
+    "psycopg[binary]>=3.2",
+    "opentelemetry-api==1.45.2",
+    "opentelemetry-sdk==1.45.2",
+    "opentelemetry-exporter-otlp-proto-http==1.45.2",
+    "opentelemetry-instrumentation-fastapi==0.66b2",
+    "opentelemetry-instrumentation-requests==0.66b2",
+    "opentelemetry-instrumentation-sqlalchemy==0.66b2",
+    # Security floor: GHSA-7gcm-g887-7qv7 fixed in 6.33.5
+    "protobuf>=6.33.5",
 ]
+
+[dependency-groups]
+dev = ["pytest", "pytest-mock"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
