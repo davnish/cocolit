@@ -30,7 +30,9 @@ runcmd:
   - iptables -D INPUT -j REJECT --reject-with icmp-host-prohibited || true
   - iptables -D FORWARD -j REJECT --reject-with icmp-host-prohibited || true
   - netfilter-persistent save || true
+%{ if data_volume ~}
   - /usr/local/sbin/mount-data-volume.sh
+%{ endif ~}
   - >-
     curl -sfL https://get.k3s.io |
     INSTALL_K3S_CHANNEL="${k3s_channel}" INSTALL_K3S_VERSION="${k3s_version}"
