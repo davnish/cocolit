@@ -22,10 +22,23 @@ in a few seconds, on a plain CPU.
 
 ## 👋 About
 
-Cocolit is a small, end-to-end geospatial ML app. A **YOLO11n** model,
-trained to spot coconut trees, runs on **onnxruntime** behind a **FastAPI**
-service. A second FastAPI service serves the **Leaflet** map and saves every
-scan to **PostGIS**.
+Cocolit started as a hobby project. I wanted to build a geospatial ML app end
+to end, not just train a model, and each step raised a new question:
+
+- **Can a model count trees from satellite imagery?** That became the
+  detector.
+- **Can I save every prediction to a database?** That brought in PostGIS.
+- **How do real services run and talk to each other?** That led me into
+  Kubernetes and networking.
+- **How do I set up cloud servers without clicking through a console?** That
+  is where I learned infrastructure as code; the servers here are defined with
+  **OpenTofu**.
+
+### The setup today
+
+A **YOLO11n** model, trained to spot coconut trees, runs on **onnxruntime**
+behind a **FastAPI** service. A second FastAPI service serves the **Leaflet**
+map and saves every scan to **PostGIS**.
 
 All three (the website, the detector and the database) run on a single
 **k3s** Kubernetes node. Visitors reach it through a **Cloudflare Tunnel**, so
@@ -186,8 +199,7 @@ in the [deployment guide](https://davnish.github.io/cocolit/architecture/#deploy
 
 ## 📜 How the project evolved
 
-Cocolit started as a small experiment and was rebuilt a few times as it
-grew. Each stage solved the biggest problem of the one before.
+Cocolit was rebuilt a few times as it grew. Each stage solved the biggest problem of the one before.
 
 | When | Stage | What changed |
 |---|---|---|
