@@ -1,181 +1,145 @@
-name: Build Streamlit, Inference Images and Deploy
+name: CI
+
+# Tests, Helm lint, and multi-arch images pushed to GHCR.
+# Deploys are run from the cluster side (scripts/deploy_laptop.sh); GitHub
+# cannot reach the k3s API, which is only exposed through the Cloudflare Tunnel.
 
 on:
   push:
-    branches:
-      - main
-      - frontend
+    branches: [main, frontend]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
-
-# -------------------------------------------------
-# 1 Detect changes
-# -------------------------------------------------
-
-  detect_changes:
+  changes:
     runs-on: ubuntu-latest
-
     outputs:
-      streamlit: ${{ steps.filter.outputs.streamlit }}
-      inference: ${{ steps.filter.outputs.inference }}
-      helm: ${{ steps.filter.outputs.helm }}
-
+      images: ${{ steps.images.outputs.matrix }}
+      chart: ${{ github.ref_type == 'tag' || steps.filter.outputs.chart == 'true' }}
     steps:
-
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Detect changed components
-        id: filter
+      - uses: actions/checkout@v4
+      - id: filter
         uses: dorny/paths-filter@v3
         with:
           filters: |
-            streamlit:
-              - 'static/**'
-              - 'configs/**'
-              - 'streamlit.Dockerfile'
-
-            inference:
+            shared: &shared
               - 'src/**'
+              - 'configs/**'
+              - 'pyproject.toml'
+              - 'uv.lock'
+              - '.github/workflows/ci_cd.yml'
+            frontend:
+              - *shared
+              - 'main.py'
+              - 'static/**'
+              - 'data/countries/**'
+              - 'frontend.Dockerfile'
+              - 'requirements_streamlit.txt'
+            inference:
+              - *shared
               - 'pipelines/**'
+              - 'models/**'
               - 'inference.Dockerfile'
+              - 'requirements_inference.txt'
+            chart:
+              - 'infra/charts/**'
+              - '.github/workflows/ci_cd.yml'
+      - id: images
+        name: Images to build (both on release tags)
+        env:
+          TAG: ${{ github.ref_type == 'tag' }}
+          FRONTEND: ${{ steps.filter.outputs.frontend }}
+          INFERENCE: ${{ steps.filter.outputs.inference }}
+        run: |
+          items=()
+          if [ "$TAG" = true ] || [ "$FRONTEND" = true ]; then
+            items+=('{"component":"frontend","dockerfile":"frontend.Dockerfile","image":"ghcr.io/davnish/streamlit-server"}')
+          fi
+          if [ "$TAG" = true ] || [ "$INFERENCE" = true ]; then
+            items+=('{"component":"inference","dockerfile":"inference.Dockerfile","image":"ghcr.io/davnish/inference-server"}')
+          fi
+          echo "matrix=[$(IFS=,; echo "${items[*]}")]" >> "$GITHUB_OUTPUT"
 
-            helm:
-              - 'infra/charts/cocolit/**'
-              - ".github/workflows/ci_cd.yml"
-
-# -------------------------------------------------
-# 2 Build Streamlit Image
-# -------------------------------------------------
-
-  build_frontend:
-    needs: detect_changes
-    if: needs.detect_changes.outputs.streamlit == 'true'
-
+  test:
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.11"
+      - name: Install (from uv.lock)
+        run: uv sync --locked
+      - name: Unit tests
+        run: uv run pytest tests --ignore=tests/integration -q
 
+  helm:
+    needs: changes
+    if: needs.changes.outputs.chart == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+      - name: Lint and render (default and laptop values, all options on)
+        run: |
+          CHART=infra/charts/cocolit
+          helm lint $CHART
+          helm lint $CHART -f $CHART/values-laptop.yaml
+          helm template cocolit $CHART -n apps -f $CHART/values-laptop.yaml \
+            --set cloudflared.enabled=true --set overflow.enabled=true \
+            --set inference.hpa.enabled=true --set otel.endpoint=http://alloy:4318 > /dev/null
+
+  image:
+    needs: [changes, test]
+    if: needs.changes.outputs.images != '[]'
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-      actions: read
-
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.changes.outputs.images) }}
     steps:
+      - uses: actions/checkout@v4
 
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
 
-      - name: Set short SHA
-        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
-
-      - name: Setup Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to GHCR
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and Push Streamlit Image
-        uses: docker/build-push-action@v5
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ matrix.image }}
+          tags: |
+            type=sha,format=short,prefix=
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build (amd64 for Cloud Run, arm64 for Oracle A1 / Apple Silicon)
+        uses: docker/build-push-action@v6
         with:
           context: .
-          file: frontend.Dockerfile
-          push: true
-          tags: ghcr.io/davnish/streamlit-server:${{ env.SHORT_SHA }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-# -------------------------------------------------
-# 3 Build Inference Service Image
-# -------------------------------------------------
-
-  build_inference:
-    needs: detect_changes
-    if: needs.detect_changes.outputs.inference == 'true'
-
-    runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-      packages: write
-      actions: read
-
-    steps:
-
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Set short SHA
-        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
-
-      - name: Setup Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_TOKEN }}
-
-      - name: Build and Push Inference Service Image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: inference.Dockerfile
-          push: true
-          tags: ghcr.io/davnish/inference-service:${{ env.SHORT_SHA }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-# -------------------------------------------------
-# 4 Deploy
-# -------------------------------------------------
-
-  deploy:
-    needs:
-      - detect_changes
-      - build_frontend
-      - build_inference
-
-    if: |
-      needs.detect_changes.outputs.streamlit == 'true' ||
-      needs.detect_changes.outputs.inference == 'true' ||
-      needs.detect_changes.outputs.helm == 'true'
-
-    runs-on: ubuntu-latest
-
-    steps:
-
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Install kubectl
-        uses: azure/setup-kubectl@v4
-
-      - name: Install Helm
-        uses: azure/setup-helm@v4
-
-      - name: Setup kubeconfig
-        run: |
-          mkdir -p ~/.kube
-          echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
-
-      - name: Verify cluster access
-        run: kubectl get nodes
-
-      - name: Deploy via Helm
-        run: |
-
-          SHORT_SHA=${GITHUB_SHA::7}
-
-          echo "${{ secrets.CREDENTIALS }}" > credentials.yaml
-
-          helm upgrade --install cocolit ./infra/charts/cocolit \
-            --namespace apps \
-            --create-namespace \
-            -f credentials.yaml \
-            --set streamlit.image.tag=$SHORT_SHA \
-            --set inferenceService.image.tag=$SHORT_SHA
+          file: ${{ matrix.dockerfile }}
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: ASSET_VERSION=${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.component }}
+          cache-to: type=gha,scope=${{ matrix.component }},mode=max
