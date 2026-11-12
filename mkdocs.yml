@@ -1,20 +1,58 @@
 site_name: Cocolit
-site_url: https://github.com/davnish/cocolit.git
+site_description: Count coconut trees from satellite imagery.
+site_url: https://davnish.github.io/cocolit/
+repo_name: davnish/cocolit
+repo_url: https://github.com/davnish/cocolit
+edit_uri: edit/main/docs/
+
+nav:
+  - Home: index.md
+  - Architecture: architecture.md
 
 theme:
   name: material
+  palette:
+    - scheme: slate
+      primary: green
+      accent: amber
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+    - scheme: default
+      primary: green
+      accent: amber
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+  features:
+    - navigation.sections
+    - navigation.top
+    - toc.follow
+    - content.code.copy
+  icon:
+    repo: fontawesome/brands/github
 
-
-repo_name: davnish/cocolit
-repo_url: https://github.com/davnish/cocolit
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/davnish/cocolit
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/in/nischal-singh/
+    - icon: material/web
+      link: https://cocolit.prithvilabs.com
 
 markdown_extensions:
+  - admonition
+  - attr_list
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight
   - pymdownx.superfences:
       custom_fences:
         - name: mermaid
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
-  - attr_list
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
