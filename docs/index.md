@@ -26,8 +26,8 @@
 
 A FastAPI frontend serves the map and calls a separate inference API, which
 streams satellite tiles into memory and runs the model with onnxruntime while
-the tiles are still downloading. Both run on a single k3s node behind a
-Cloudflare Tunnel, with Cloud Run taking requests when the node is busy.
+the tiles are still downloading. Both run on a single k3s node in Oracle
+Cloud behind a Cloudflare Tunnel, with Cloud Run taking requests when the node is busy.
 
 | Area | Inference time | Peak memory |
 |---|---|---|

@@ -14,7 +14,7 @@ flowchart LR
     user([Browser]) -->|HTTPS| cf[Cloudflare<br/>DNS, TLS, rate limit]
     cf -->|Tunnel, outbound only| fe
 
-    subgraph k3s["k3s node · Helm release 'cocolit' · namespace 'apps'"]
+    subgraph k3s["k3s node on Oracle Cloud · Helm release 'cocolit' · namespace 'apps'"]
         cfd[cloudflared] -.-> fe
         fe[Frontend<br/>main.py + static/] -->|1. local first| inf[Inference API<br/>src/api/inference.py]
         fe --> db[(PostGIS<br/>CloudNativePG)]
@@ -204,6 +204,20 @@ erDiagram
 
 ## Deployment
 
+The live site runs on a single k3s node in **Oracle Cloud** (region
+`ap-hyderabad-1`), reached only through the Cloudflare Tunnel.
+
+| | Today | Long-term |
+|---|---|---|
+| Node | `cocolit-x86`: VM.Standard.E5.Flex, 1 OCPU (2 vCPUs), 6 GB, amd64 | `cocolit-a1`: VM.Standard.A1.Flex, arm64, Always Free |
+| Paid by | Trial credits | Always Free |
+| PostGIS data | The node's boot volume | A separate block volume |
+
+The A1 node is created as soon as Oracle has capacity (see
+[Oracle Cloud](#oracle-cloud-infraoci)). Moving to it means deploying the
+chart there, copying the database with `pg_dump`, and moving the tunnel
+connector, the same steps used to move the site off the laptop.
+
 ### Kubernetes (Helm chart `infra/charts/cocolit`)
 
 | Template | Creates | Enabled by |
@@ -216,15 +230,23 @@ erDiagram
 | `streamlit_ingress.yaml`, `clusterissuer.yaml` | Traefik ingress and Let's Encrypt | `ingress.enabled`, `clusterIssuer.enabled` (off behind the tunnel) |
 
 - **`values.yaml`** holds the defaults.
-- **`values-laptop.yaml`** is the current single-node setup: k3s on Colima
-  with locally built images (`pullPolicy: Never`), the tunnel on, ingress and
-  cert-manager off, and a multi-arch PostGIS image.
-- **Credentials** come from a gitignored `secrets-laptop.yaml`. The tunnel
-  token and the overflow URL and key are Kubernetes secrets created outside
-  the chart.
+- **`values-oci.yaml`** is the live setup: CI-built multi-arch images from
+  GHCR pinned by short SHA (bump `tag` to ship a new build), the tunnel on,
+  ingress and cert-manager off, and a multi-arch PostGIS image.
+- **`values-laptop.yaml`** is a local test setup: k3s on Colima with locally
+  built images (`pullPolicy: Never`).
+- **Credentials** come from a gitignored `secrets-oci.yaml` or
+  `secrets-laptop.yaml`. The tunnel token and the overflow URL and key are
+  Kubernetes secrets created outside the chart.
 
-`scripts/deploy_laptop.sh` builds both images and runs `helm upgrade
---install`, using a Helm container if `helm` isn't installed.
+`NODE=x86 scripts/deploy_oci.sh` deploys to Oracle Cloud over SSH. The k3s API
+port is not open, so Helm runs on the node itself, and the secrets file is
+streamed on stdin instead of being copied to the node. The script also
+installs Helm and the CloudNativePG operator on first run.
+
+`scripts/deploy_laptop.sh` builds both images locally and runs `helm upgrade
+--install` on Colima. Pass `--set cloudflared.enabled=false` there, or the
+laptop joins the live tunnel and splits traffic between two databases.
 
 ### Edge: Cloudflare
 
@@ -246,12 +268,19 @@ erDiagram
 - writes the URL and key into the `inference-overflow` secret. Turn it on
   with `--set overflow.enabled=true`.
 
-### Target node: Oracle Cloud
+### Oracle Cloud (`infra/oci`)
 
-`infra/oci/` is OpenTofu for an Always Free Ampere A1 VM (arm64). It sets up
-a VCN that only allows SSH from one IP, a separate data volume mounted at
-k3s's storage path (so the database survives replacing the node), and k3s
-installed by cloud-init. `retry-apply.sh` retries until Oracle has capacity.
+OpenTofu sets up:
+
+- a compartment and a VCN whose security list only allows SSH from one IP;
+- one VM per enabled node (`a1_enabled`, `x86_enabled`), each with k3s
+  installed by cloud-init;
+- for the A1 node, a separate 100 GB data volume mounted at k3s's storage
+  path, so the database survives replacing the node.
+
+`retry-apply.sh` re-runs `tofu apply` until Oracle has A1 capacity; the
+running x86 node is left untouched by each attempt. A1 shapes were out of
+capacity in Hyderabad, and so was E4, which is why the bridge node is E5.
 
 ### Images
 

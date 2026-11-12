@@ -34,7 +34,7 @@ behind a **FastAPI** service. A second FastAPI service serves the **Leaflet**
 map and saves every scan to **PostGIS**.
 
 All three (the website, the detector and the database) run on a single
-**k3s** Kubernetes node. Visitors reach it through a **Cloudflare Tunnel**, so
+**k3s** Kubernetes node in **Oracle Cloud**. Visitors reach it through a **Cloudflare Tunnel**, so
 the node never opens a port to the internet, and the database stays private
 inside the cluster. When the detector is busy, requests spill over to a backup
 copy on **Google Cloud Run** that costs nothing when idle.
@@ -178,15 +178,18 @@ tests/                   tests
 
 Cocolit is built to run **for free**:
 
-- **One small Kubernetes (k3s) server** runs the website, the detector and the
-  database. Today that's a laptop; next it's an Oracle Cloud Always Free
-  server ([`infra/oci/`](infra/oci/)).
+- **One small Kubernetes (k3s) server on Oracle Cloud** runs the website, the
+  detector and the database. Today it's an x86 VM in Hyderabad; it moves to an
+  Always Free Arm (A1) server as soon as Oracle has capacity. Both are defined
+  with OpenTofu in [`infra/oci/`](infra/oci/).
 - **Cloudflare** sits in front: the domain, HTTPS, rate limiting, and a
   tunnel, so the server never opens a port to the internet.
 - **Google Cloud Run** holds a backup detector that costs nothing when idle.
 
-Deploy scripts: [`scripts/deploy_laptop.sh`](scripts/deploy_laptop.sh) and
-[`scripts/deploy_cloud_run.sh`](scripts/deploy_cloud_run.sh). The details are
+Deploy scripts: [`scripts/deploy_oci.sh`](scripts/deploy_oci.sh) (Oracle
+Cloud), [`scripts/deploy_cloud_run.sh`](scripts/deploy_cloud_run.sh) (backup
+detector) and [`scripts/deploy_laptop.sh`](scripts/deploy_laptop.sh) (a local
+k3s for testing). The details are
 in the [deployment guide](https://davnish.github.io/cocolit/architecture/#deployment).
 
 ## 📜 How the project evolved
@@ -199,7 +202,7 @@ Cocolit was rebuilt a few times as it grew. Each stage solved the biggest proble
 | **May 2025** | 🖥️ v1: a Streamlit app | An interactive map where you draw a box and see the trees. Results and user feedback saved to PostGIS, a statistics page with a world heatmap, and the detector split out behind its own FastAPI service. |
 | **Dec 2025 – Jan 2026** | 📦 Containers and cloud | Docker images for both services published to GHCR, an AWS server set up with OpenTofu, and a Helm chart to run everything on Kubernetes. |
 | **Mar 2026** | ⚙️ Automation and a real frontend | CI/CD that built and deployed on every push, a managed PostGIS cluster (CloudNativePG), and Streamlit replaced by a plain HTML, CSS and Leaflet page served by FastAPI. |
-| **Nov 2026** | 🚀 [v0.0.2](https://github.com/davnish/cocolit/releases/tag/v0.0.2): faster and free | The detector rewritten to run in memory on onnxruntime, without PyTorch or GDAL: 1.5× faster with identical detections. A redesigned, touch-friendly map. Hosting moved from AWS to a free setup: one k3s node behind a Cloudflare Tunnel, with Cloud Run as backup. |
+| **Nov 2026** | 🚀 [v0.0.2](https://github.com/davnish/cocolit/releases/tag/v0.0.2): faster and free | The detector rewritten to run in memory on onnxruntime, without PyTorch or GDAL: 1.5× faster with identical detections. A redesigned, touch-friendly map. Hosting moved from AWS to Oracle Cloud: one k3s node behind a Cloudflare Tunnel, with Cloud Run as backup. |
 
 A few lessons shaped these steps:
 

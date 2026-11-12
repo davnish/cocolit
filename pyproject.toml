@@ -12,10 +12,10 @@ dependencies = [
     "httpx>=0.28",
     "pydantic>=2",
     "pyyaml>=6",
-    "fastapi>=0.128.0",
+    "fastapi>=0.162.5",
     "uvicorn>=0.40.0",
-    "orjson>=3.11.5",
-    "python-dotenv>=1.2.1",
+    "orjson>=3.11.6",
+    "python-dotenv>=1.2.2",
     "python-multipart",
     "requests",
     "geopandas>=1.0",
@@ -30,8 +30,11 @@ dependencies = [
     "opentelemetry-instrumentation-fastapi==0.66b2",
     "opentelemetry-instrumentation-requests==0.66b2",
     "opentelemetry-instrumentation-sqlalchemy==0.66b2",
-    # Security floor: GHSA-7gcm-g887-7qv7 fixed in 6.33.5
-    "protobuf>=6.33.5",
+    # Security floors (Dependabot advisories)
+    "protobuf>=6.33.5",  # GHSA-7gcm-g887-7qv7
+    "starlette>=1.3.1",  # GHSA-82w8-qh3p-5jfq and 4 more
+    "anyio>=4.14.2",  # GHSA-82r6-8w77-94w6, GHSA-5p39-cfhj-2xmp
+    "idna>=3.15",  # GHSA-65pc-fj4g-8rjx
 ]
 
 [dependency-groups]

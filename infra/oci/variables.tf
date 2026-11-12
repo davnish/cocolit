@@ -32,6 +32,34 @@ variable "ssh_allowed_cidr" {
 }
 
 # Always Free A1 allowance is 2 OCPU / 12 GB in total.
+variable "a1_enabled" {
+  description = "Create the Always Free A1 (arm64) node; retry-apply.sh loops until capacity exists"
+  type        = bool
+  default     = true
+}
+
+variable "x86_enabled" {
+  description = "Create the x86 bridge node (paid; use only while trial credits last)"
+  type        = bool
+  default     = false
+}
+
+variable "x86_shape" {
+  type    = string
+  default = "VM.Standard.E5.Flex"
+}
+
+variable "x86_ocpus" {
+  description = "1 OCPU = 1 core (2 vCPUs) on E4/E5, the same core count as a 1-OCPU A1"
+  type        = number
+  default     = 1
+}
+
+variable "x86_memory_gb" {
+  type    = number
+  default = 6
+}
+
 variable "ocpus" {
   type    = number
   default = 2

@@ -21,6 +21,7 @@ uv run python -m scripts.benchmark_inference --sizes 0.1 1 2.5   # per-stage tim
 # Helm checks run by CI
 helm lint infra/charts/cocolit -f infra/charts/cocolit/values-laptop.yaml
 
+NODE=x86 scripts/deploy_oci.sh  # helm upgrade on the OCI k3s node over SSH (live site)
 scripts/deploy_laptop.sh        # build both images and helm upgrade on the local k3s (Colima)
 scripts/deploy_cloud_run.sh     # build and deploy the overflow detector to Cloud Run
 ```
@@ -57,10 +58,11 @@ Frontend assets are cached at the Cloudflare edge. `index.html` references `?v=_
 
 - The Helm chart lives in `infra/charts/cocolit`:
   - `values.yaml` is the default.
-  - `values-laptop.yaml` is the current laptop k3s node, with local `:dev` images and `pullPolicy: Never`.
+  - `values-oci.yaml` is the live OCI node, with CI-built GHCR images pinned by short SHA (bump `tag` to deploy a new build).
+  - `values-laptop.yaml` is the local Colima k3s, with local `:dev` images and `pullPolicy: Never`.
   - Secrets go in a gitignored `secrets-*.yaml`.
   - The chart includes CloudNativePG PostGIS and an optional `cloudflared`, which reads its token from the k8s secret `cloudflared-token`.
-- The target is an Oracle Always Free A1 node (arm64), set up with OpenTofu in `infra/oci/`. `infra/tofu` is the old AWS setup, kept until teardown.
+- `infra/oci/` (OpenTofu) defines an Always Free A1 node (arm64, the long-term target; `retry-apply.sh` loops until capacity exists) and an x86 bridge node (E5.Flex on trial credits) that serves the site today. The bridge keeps PostGIS on its boot volume, so moving to A1 means a pg_dump/restore. `infra/tofu` is the old AWS setup, kept until teardown.
 - CI (`.github/workflows/ci_cd.yml`) tests, lints the chart and pushes multi-arch (amd64 + arm64) images to `ghcr.io/davnish/{streamlit-server,inference-server}` with `GITHUB_TOKEN`. It does not deploy, because the cluster is only reachable through the tunnel.
 - Docs are published from `main` (`docs_ci.yml`).
 
