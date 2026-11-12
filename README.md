@@ -22,17 +22,10 @@ in a few seconds, on a plain CPU.
 
 ## 👋 About
 
-Cocolit started as a hobby project. I wanted to build a geospatial ML app end
-to end, not just train a model, and each step raised a new question:
-
-- **Can a model count trees from satellite imagery?** That became the
-  detector.
-- **Can I save every prediction to a database?** That brought in PostGIS.
-- **How do real services run and talk to each other?** That led me into
-  Kubernetes and networking.
-- **How do I set up cloud servers without clicking through a console?** That
-  is where I learned infrastructure as code; the servers here are defined with
-  **OpenTofu**.
+Cocolit began as a hobby project to explore what it takes to build a
+geospatial ML app end to end. Along the way it became a place to try things
+out: saving predictions to a database, running services on Kubernetes,
+networking, and managing cloud infrastructure as code with **OpenTofu**.
 
 ### The setup today
 
