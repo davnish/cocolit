@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#14201b"/>
+  <!-- ground -->
+  <ellipse cx="38" cy="56" rx="16" ry="3" fill="#2b3d33"/>
+  <!-- trunk -->
+  <path d="M38 56 C39 44 36 34 30 24" fill="none" stroke="#c98a4b" stroke-width="6" stroke-linecap="round"/>
+  <path d="M35.5 47h5M34.5 40h5M32.5 33h5" stroke="#9a6533" stroke-width="1.6" stroke-linecap="round"/>
+  <!-- fronds -->
+  <g fill="#6fd49a">
+    <path d="M30 22 C22 12 12 12 5 18 C13 16 21 18 30 22Z"/>
+    <path d="M30 22 C34 11 44 7 53 10 C45 12 37 15 30 22Z"/>
+    <path d="M30 22 C40 18 52 21 58 30 C50 25 40 23 30 22Z"/>
+    <path d="M30 22 C22 22 12 27 8 37 C14 30 22 25 30 22Z"/>
+  </g>
+  <g fill="#3fa36b">
+    <path d="M30 22 C27 12 30 5 37 2 C33 8 31 14 30 22Z"/>
+    <path d="M30 22 C38 25 44 32 45 42 C41 34 36 27 30 22Z"/>
+    <path d="M30 22 C25 27 22 34 23 42 C20 33 23 26 30 22Z"/>
+  </g>
+  <!-- coconuts -->
+  <g fill="#f2b544" stroke="#14201b" stroke-width="1">
+    <circle cx="27" cy="25.5" r="3.2"/>
+    <circle cx="32.5" cy="26.5" r="3.2"/>
+    <circle cx="29.5" cy="29.5" r="3.2"/>
+  </g>
+</svg>

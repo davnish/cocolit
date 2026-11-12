@@ -1,6 +1,27 @@
 locals {
   name = "cocolit"
   tags = { project = "cocolit", managed-by = "opentofu" }
+
+  # The A1 node is the long-term (Always Free) target. The x86 node is a bridge
+  # paid from trial credits while A1 capacity is unavailable; it keeps the
+  # database on its boot volume, so move data with pg_dump when switching.
+  all_nodes = {
+    a1 = {
+      enabled     = var.a1_enabled
+      shape       = "VM.Standard.A1.Flex"
+      ocpus       = var.ocpus
+      memory_gb   = var.memory_gb
+      data_volume = true
+    }
+    x86 = {
+      enabled     = var.x86_enabled
+      shape       = var.x86_shape
+      ocpus       = var.x86_ocpus
+      memory_gb   = var.x86_memory_gb
+      data_volume = false
+    }
+  }
+  nodes = { for k, v in local.all_nodes : k => v if v.enabled }
 }
 
 resource "oci_identity_compartment" "cocolit" {
@@ -15,12 +36,13 @@ data "oci_identity_availability_domains" "ads" {
   compartment_id = var.tenancy_ocid
 }
 
-# Latest Ubuntu 24.04 LTS image for Ampere (aarch64).
+# Latest Ubuntu 24.04 LTS image for each node's shape (aarch64 or x86_64).
 data "oci_core_images" "ubuntu" {
+  for_each                 = local.nodes
   compartment_id           = var.tenancy_ocid
   operating_system         = "Canonical Ubuntu"
   operating_system_version = "24.04"
-  shape                    = "VM.Standard.A1.Flex"
+  shape                    = each.value.shape
   sort_by                  = "TIMECREATED"
   sort_order               = "DESC"
 }
@@ -111,31 +133,32 @@ resource "oci_core_subnet" "public" {
 }
 
 # ---------------------------------------------------------------------------
-# Compute: single A1 node running k3s.
+# Compute: one k3s node per enabled entry in local.nodes.
 # ---------------------------------------------------------------------------
 
 resource "oci_core_instance" "node" {
+  for_each            = local.nodes
   compartment_id      = oci_identity_compartment.cocolit.id
   availability_domain = data.oci_identity_availability_domains.ads.availability_domains[0].name
-  display_name        = "${local.name}-node"
-  shape               = "VM.Standard.A1.Flex"
+  display_name        = "${local.name}-${each.key}"
+  shape               = each.value.shape
   freeform_tags       = local.tags
 
   shape_config {
-    ocpus         = var.ocpus
-    memory_in_gbs = var.memory_gb
+    ocpus         = each.value.ocpus
+    memory_in_gbs = each.value.memory_gb
   }
 
   source_details {
     source_type             = "image"
-    source_id               = data.oci_core_images.ubuntu.images[0].id
+    source_id               = data.oci_core_images.ubuntu[each.key].images[0].id
     boot_volume_size_in_gbs = var.boot_volume_gb
   }
 
   create_vnic_details {
     subnet_id        = oci_core_subnet.public.id
     assign_public_ip = true # needed for outbound internet via the internet gateway
-    hostname_label   = "node"
+    hostname_label   = each.key
   }
 
   metadata = {
@@ -143,6 +166,7 @@ resource "oci_core_instance" "node" {
     user_data = base64encode(templatefile("${path.module}/cloud-init.yaml", {
       k3s_channel = var.k3s_channel
       k3s_version = var.k3s_version
+      data_volume = each.value.data_volume
     }))
   }
 
@@ -160,10 +184,11 @@ resource "oci_core_instance" "node" {
   }
 }
 
-# Separate volume so the database survives replacing the node.
+# Separate volume so the database survives replacing the A1 node.
 resource "oci_core_volume" "data" {
+  count               = var.a1_enabled ? 1 : 0
   compartment_id      = oci_identity_compartment.cocolit.id
-  availability_domain = oci_core_instance.node.availability_domain
+  availability_domain = data.oci_identity_availability_domains.ads.availability_domains[0].name
   display_name        = "${local.name}-data"
   size_in_gbs         = var.data_volume_gb
   freeform_tags       = local.tags
@@ -174,8 +199,9 @@ resource "oci_core_volume" "data" {
 }
 
 resource "oci_core_volume_attachment" "data" {
+  count           = var.a1_enabled ? 1 : 0
   attachment_type = "paravirtualized"
-  instance_id     = oci_core_instance.node.id
-  volume_id       = oci_core_volume.data.id
+  instance_id     = oci_core_instance.node["a1"].id
+  volume_id       = oci_core_volume.data[0].id
   device          = "/dev/oracleoci/oraclevdb"
 }
