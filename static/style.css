@@ -258,6 +258,42 @@ a { color: inherit; }
 
 .draw-tooltip { font-family: var(--font-family); }
 
+/* Coordinates bar under the map */
+.map-coords {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    min-height: 40px;
+}
+.coords-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+.coords-value {
+    color: var(--text-main);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-variant-numeric: tabular-nums;
+}
+.coords-zoom { margin-left: auto; }
+.coords-copy {
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-main);
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.2rem 0.6rem;
+    cursor: pointer;
+}
+.coords-copy:hover { border-color: var(--accent); color: var(--accent); }
+
 /* Loading overlay */
 #loading-overlay {
     position: absolute;
@@ -423,6 +459,8 @@ th {
     .brand-org { font-size: 0.8rem; }
     .map-status { flex-basis: 100%; }
     .map-wrapper { height: 58vh; min-height: 360px; }
+    .map-coords { padding: 0.5rem 0.75rem; gap: 0.5rem; font-size: 0.8rem; }
+    .coords-label { display: none; }
     .metrics-section { grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; }
     .metric-card { padding: 0.75rem; text-align: center; }
     .metric-card h3 { font-size: 0.65rem; }

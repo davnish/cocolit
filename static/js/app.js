@@ -51,6 +51,7 @@ function initMainMap() {
 
     // Box tool: press the button, then drag a box with a finger, mouse or pen.
     initBoxDraw();
+    initCoordsBar();
 
     // Add Search Box (Geocoder)
     L.Control.geocoder({
@@ -108,6 +109,65 @@ function setDrawMode(on) {
     } else if (!busy) {
         setStatus(idleMessage());
     }
+}
+
+// ---------------------------------------------------------------------------
+// Coordinates bar under the map: pointer position on desktop, map centre
+// otherwise (touch screens have no hover).
+// ---------------------------------------------------------------------------
+let coordsShown = null; // the LatLng currently displayed
+
+function formatLatLng(ll) {
+    const lat = `${Math.abs(ll.lat).toFixed(5)}° ${ll.lat >= 0 ? 'N' : 'S'}`;
+    const lng = `${Math.abs(ll.lng).toFixed(5)}° ${ll.lng >= 0 ? 'E' : 'W'}`;
+    return `${lat}, ${lng}`;
+}
+
+function showCoords(latlng, label) {
+    coordsShown = latlng.wrap();
+    document.getElementById('coords-label').textContent = label;
+    document.getElementById('coords-value').textContent = formatLatLng(coordsShown);
+}
+
+function showCentre() {
+    showCoords(mainMap.getCenter(), 'Map centre');
+    document.getElementById('coords-zoom').textContent = `Zoom ${Math.round(mainMap.getZoom())}`;
+}
+
+function initCoordsBar() {
+    const hover = window.matchMedia('(hover: hover)').matches;
+    let pinned = null; // a clicked/tapped point stays shown until the next click
+
+    const showResting = () => (pinned ? showCoords(pinned, 'Pinned') : showCentre());
+
+    if (hover) {
+        mainMap.on('mousemove', (e) => showCoords(e.latlng, 'Pointer'));
+        mainMap.on('mouseout', showResting);
+    }
+    mainMap.on('click', (e) => {
+        if (drawMode) return;
+        pinned = e.latlng;
+        showCoords(pinned, 'Pinned');
+    });
+    mainMap.on('move zoomend', () => {
+        const label = document.getElementById('coords-label').textContent;
+        if (label === 'Map centre') showCentre();
+        document.getElementById('coords-zoom').textContent = `Zoom ${Math.round(mainMap.getZoom())}`;
+    });
+    showCentre();
+
+    const copyBtn = document.getElementById('coords-copy');
+    copyBtn.addEventListener('click', async () => {
+        if (!coordsShown) return;
+        const text = `${coordsShown.lat.toFixed(6)}, ${coordsShown.lng.toFixed(6)}`;
+        try {
+            await navigator.clipboard.writeText(text);
+            copyBtn.textContent = 'Copied';
+        } catch (err) {
+            copyBtn.textContent = text; // clipboard blocked: show it to copy by hand
+        }
+        setTimeout(() => (copyBtn.textContent = 'Copy'), 1500);
+    });
 }
 
 // ---------------------------------------------------------------------------
