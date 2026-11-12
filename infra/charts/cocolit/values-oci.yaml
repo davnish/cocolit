@@ -1,0 +1,38 @@
+# Oracle Cloud k3s node (infra/oci): CI-built multi-arch images from GHCR,
+# no ingress/cert-manager, public access only through the Cloudflare Tunnel.
+# Deploy with scripts/deploy_oci.sh (secrets from the gitignored secrets-oci.yaml).
+streamlit:
+  image:
+    repository: ghcr.io/davnish/streamlit-server
+    tag: 9401a75
+
+inference:
+  image:
+    repository: ghcr.io/davnish/inference-server
+    tag: 9401a75
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      memory: 1Gi
+
+clusterIssuer:
+  enabled: false
+ingress:
+  enabled: false
+
+postgis:
+  # Multi-arch (arm64 + amd64); the plain :16/:17 tags are amd64-only.
+  image: ghcr.io/cloudnative-pg/postgis:17-3.6-standard-trixie
+  storageSize: 10Gi
+
+otel:
+  environment: oci
+
+# Token secret: kubectl -n apps create secret generic cloudflared-token --from-literal=token=...
+cloudflared:
+  enabled: true
+# Turn on once the Cloud Run secret exists (scripts/deploy_cloud_run.sh).
+overflow:
+  enabled: false
