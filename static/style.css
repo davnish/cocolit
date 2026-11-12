@@ -267,3 +267,23 @@ tbody tr:hover {
         grid-template-columns: 1fr;
     }
 }
+/* Drag-to-draw box tool */
+.draw-box-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+}
+.draw-box-btn.active {
+    background: #3388ff !important;
+    color: #fff;
+}
+.leaflet-touch .draw-box-btn {
+    width: 44px !important;   /* comfortable finger target */
+    height: 44px !important;
+}
+#main-map.drawing-box,
+#main-map.drawing-box .leaflet-interactive {
+    cursor: crosshair;
+    touch-action: none;  /* the drag draws instead of scrolling/zooming the page */
+}

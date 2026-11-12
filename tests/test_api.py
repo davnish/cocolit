@@ -48,12 +48,28 @@ def test_api_statistics_mocked(mocker):
 def test_inference_invalid_url(mocker):
     import os
     mocker.patch.dict(os.environ, clear=True) # Ensure it is not set for this test
-    
+    mocker.patch("main._router", None)
+    # ~0.1 km², a valid size, so the request gets as far as the URL lookup.
+    ring = [[80.0194, 7.8084], [80.0224, 7.8084], [80.0224, 7.8112], [80.0194, 7.8112], [80.0194, 7.8084]]
+
+    response = client.post("/api/inference", json={
+        "type": "Feature",
+        "geometry": {"type": "Polygon", "coordinates": [ring]},
+        "properties": {}
+    })
+
+    assert response.status_code == 500
+    assert "INFERENCE_URL not set" in response.json()["detail"]
+
+
+def test_inference_rejects_oversized_box_without_calling_inference(mocker):
+    post = mocker.patch("src.inference_router.requests.post")
+
     response = client.post("/api/inference", json={
         "type": "Feature",
         "geometry": {"type": "Polygon", "coordinates": [[[0,0], [1,0], [1,1], [0,1], [0,0]]]},
         "properties": {}
     })
-    
-    assert response.status_code == 500
-    assert "INFERENCE_URL not set" in response.json()["detail"]
+
+    assert response.status_code == 422
+    post.assert_not_called()

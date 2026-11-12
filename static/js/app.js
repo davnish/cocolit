@@ -16,27 +16,13 @@ function initMainMap() {
     mainMap = L.map('main-map', { zoomControl: false }).setView(defaultCenter, defaultZoom);
     
     // Add Google Satellite TileLayer (replace with actual if URL changes)
-    L.tileLayer('http://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}', {
+    L.tileLayer('https://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}', {
         attribution: 'Google Satellite',
         maxZoom: 20
     }).addTo(mainMap);
 
-    // Add Geoman controls (Only Rectangle)
-    mainMap.pm.addControls({
-        position: 'topleft',
-        drawMarker: false,
-        drawCircleMarker: false,
-        drawPolyline: false,
-        drawRectangle: true,
-        drawPolygon: false,
-        drawCircle: false,
-        drawText: false,
-        editMode: false,
-        dragMode: false,
-        cutPolygon: false,
-        removalMode: false,
-        customControls: false
-    });
+    // Box tool: press the button, then drag a box with a finger, mouse or pen.
+    initBoxDraw();
 
     // Add Search Box (Geocoder)
     L.Control.geocoder({
@@ -48,64 +34,133 @@ function initMainMap() {
         mainMap.fitBounds(bbox);
     }).addTo(mainMap);
 
-    // Disable map dragging when drawing tool is enabled to support mobile drag-to-draw
-    mainMap.on('pm:globaldrawmodetoggled', (e) => {
-        if (e.enabled && e.shape === 'Rectangle') {
-            mainMap.dragging.disable();
-        } else {
-            mainMap.dragging.enable();
-        }
-    });
-
     // Feature group to hold predictions
     featureGroup = L.featureGroup().addTo(mainMap);
 
-    // Event: Real-time area calculation while drawing
-    mainMap.on('pm:drawstart', ({ workingLayer }) => {
-        // Init tooltip bound near cursor
-        drawTooltip = L.tooltip({ permanent: true, direction: 'right', className: 'draw-tooltip' })
-            .setLatLng(mainMap.getCenter())
-            .setContent("Area: 0.00 Km²<br/><span style='font-size:0.85em;color:#94a3b8;'>Click to finish</span>")
-            .addTo(mainMap);
+}
 
-        workingLayer.on('pm:vertexadded', (e) => updateLiveArea({ layer: workingLayer }, null));
-        mainMap.on('mousemove', (e) => {
-            if (workingLayer._latlngs) {
-                 updateLiveArea({ layer: workingLayer }, e.latlng);
-            }
-        });
-    });
-    
-    mainMap.on('pm:drawend', () => {
-        if (drawTooltip) {
-            mainMap.removeLayer(drawTooltip);
-            drawTooltip = null;
+// ---------------------------------------------------------------------------
+// Drag-to-draw box. Pointer events cover mouse, touch and pen with one code
+// path; while the tool is on, map panning/zooming is off so a drag draws.
+// ---------------------------------------------------------------------------
+let drawMode = false;
+let drawButton = null;
+let drawing = null; // { pointerId, start: LatLng, startPoint: Point, rect }
+
+function initBoxDraw() {
+    const BoxControl = L.Control.extend({
+        options: { position: 'topleft' },
+        onAdd() {
+            const bar = L.DomUtil.create('div', 'leaflet-bar');
+            drawButton = L.DomUtil.create('a', 'draw-box-btn', bar);
+            drawButton.href = '#';
+            drawButton.title = 'Draw a box (drag on the map)';
+            drawButton.setAttribute('role', 'button');
+            drawButton.setAttribute('aria-pressed', 'false');
+            drawButton.setAttribute('aria-label', 'Draw a box');
+            drawButton.innerHTML =
+                '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">' +
+                '<rect x="4" y="4" width="16" height="16" fill="none" stroke="currentColor" ' +
+                'stroke-width="2" stroke-dasharray="3 2"/></svg>';
+            L.DomEvent.disableClickPropagation(bar);
+            L.DomEvent.on(drawButton, 'click', (e) => {
+                L.DomEvent.preventDefault(e);
+                setDrawMode(!drawMode);
+            });
+            return bar;
         }
     });
+    new BoxControl().addTo(mainMap);
 
-    // Event: Shape drawn (send to inference)
-    mainMap.on('pm:create', async (e) => {
-        const layer = e.layer;
-        const geojson = layer.toGeoJSON();
-        
-        // Final area calc for this shape
-        const areaSqM = turf.area(geojson);
-        if (areaSqM / 1000000 > 0.5) {
-            alert("The selected area is too large! Please decrease the size below 0.5 Km².");
-            mainMap.removeLayer(layer);
-            return;
-        }
-
-        totalArea += areaSqM;
-        updateMetrics();
-
-        // Send inference request
-        await submitInference(geojson, layer);
+    const el = mainMap.getContainer();
+    el.addEventListener('pointerdown', onDrawPointerDown);
+    el.addEventListener('pointermove', onDrawPointerMove);
+    el.addEventListener('pointerup', onDrawPointerUp);
+    el.addEventListener('pointercancel', cancelDrawing);
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && drawMode) setDrawMode(false);
     });
-    
-    mainMap.on('pm:remove', (e) => {
-        window.location.reload();
-    })
+}
+
+function setDrawMode(on) {
+    drawMode = on;
+    cancelDrawing();
+    const handlers = [mainMap.dragging, mainMap.touchZoom, mainMap.doubleClickZoom, mainMap.boxZoom];
+    handlers.forEach((h) => (on ? h.disable() : h.enable()));
+    const el = mainMap.getContainer();
+    el.classList.toggle('drawing-box', on);
+    if (drawButton) {
+        drawButton.classList.toggle('active', on);
+        drawButton.setAttribute('aria-pressed', String(on));
+    }
+}
+
+function onDrawPointerDown(e) {
+    if (!drawMode || drawing || !e.isPrimary || e.button > 0) return;
+    if (e.target.closest('.leaflet-control')) return; // buttons, search box
+    e.preventDefault();
+    mainMap.getContainer().setPointerCapture(e.pointerId);
+    const start = mainMap.mouseEventToLatLng(e);
+    const rect = L.rectangle(L.latLngBounds(start, start), { color: '#3388ff', weight: 2 }).addTo(mainMap);
+    drawTooltip = L.tooltip({ permanent: true, direction: 'right', className: 'draw-tooltip' })
+        .setLatLng(start)
+        .setContent("Area: 0.000 Km²")
+        .addTo(mainMap);
+    drawing = { pointerId: e.pointerId, start, startPoint: mainMap.mouseEventToContainerPoint(e), rect };
+}
+
+function onDrawPointerMove(e) {
+    if (!drawing || e.pointerId !== drawing.pointerId) return;
+    e.preventDefault();
+    const latlng = mainMap.mouseEventToLatLng(e);
+    drawing.rect.setBounds(L.latLngBounds(drawing.start, latlng));
+    updateLiveArea({ layer: drawing.rect }, latlng);
+}
+
+function onDrawPointerUp(e) {
+    if (!drawing || e.pointerId !== drawing.pointerId) return;
+    const { rect, startPoint } = drawing;
+    const moved = startPoint.distanceTo(mainMap.mouseEventToContainerPoint(e));
+    drawing = null;
+    removeDrawTooltip();
+    if (moved < 10) {
+        // A tap, not a drag: nothing to submit.
+        mainMap.removeLayer(rect);
+        return;
+    }
+    setDrawMode(false);
+    onBoxDrawn(rect);
+}
+
+function cancelDrawing() {
+    if (drawing) {
+        mainMap.removeLayer(drawing.rect);
+        drawing = null;
+    }
+    removeDrawTooltip();
+}
+
+function removeDrawTooltip() {
+    if (drawTooltip) {
+        mainMap.removeLayer(drawTooltip);
+        drawTooltip = null;
+    }
+}
+
+// A finished box: check its size, then send it to inference.
+async function onBoxDrawn(layer) {
+    const geojson = layer.toGeoJSON();
+    const areaSqM = turf.area(geojson);
+    if (areaSqM / 1000000 > 0.5) {
+        alert("The selected area is too large! Please decrease the size below 0.5 Km².");
+        mainMap.removeLayer(layer);
+        return;
+    }
+
+    totalArea += areaSqM;
+    updateMetrics();
+
+    await submitInference(geojson, layer);
 }
 
 function updateLiveArea(e, latlng) {
@@ -130,7 +185,7 @@ function updateLiveArea(e, latlng) {
             } else {
                 e.layer.setStyle({ color: '#3388ff', fillColor: '#3388ff' }); // Blue
                 if (drawTooltip) {
-                    drawTooltip.setContent(`Area: ${tempAreaKm2.toFixed(3)} Km²<br/><span style="font-size:0.85em;color:#94a3b8;">Click to finish</span>`);
+                    drawTooltip.setContent(`Area: ${tempAreaKm2.toFixed(3)} Km²<br/><span style="font-size:0.85em;color:#94a3b8;">Release to finish</span>`);
                 }
             }
         }
@@ -164,7 +219,18 @@ async function submitInference(geojson, layer) {
             body: JSON.stringify(geojson)
         });
         
-        if (!response.ok) throw new Error("Inference failed");
+        if (!response.ok) {
+            let message = "Failed to get predictions. Please try again.";
+            if (response.status === 429) {
+                message = "Too many requests. Please wait a few seconds and try again.";
+            } else if (response.status === 422) {
+                const body = await response.json().catch(() => ({}));
+                if (typeof body.detail === "string") message = body.detail;
+            }
+            const error = new Error(message);
+            error.userMessage = message;
+            throw error;
+        }
         
         const data = await response.json();
         const features = data.features || [];
@@ -188,7 +254,7 @@ async function submitInference(geojson, layer) {
 
     } catch (err) {
         console.error("Error during inference API call:", err);
-        alert("Failed to get predictions. See console.");
+        alert(err.userMessage || "Failed to get predictions. Please try again.");
         // Revert area if inference fails
         totalArea -= turf.area(geojson);
         updateMetrics();
@@ -209,10 +275,10 @@ function initStatsMap() {
     // We don't disable zoom control here if user wants to explore
     statsMap = L.map('heatmap-map').setView(statsCenter, statsZoom);
     
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: 'abcd',
-        maxZoom: 20
+    // Esri Light Gray Canvas: keyless (CARTO basemaps now require an API key).
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
+        maxZoom: 16
     }).addTo(statsMap);
 }
 
