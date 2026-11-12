@@ -28,7 +28,7 @@ import yaml
 # detect = download and model overlapped; tile_wait/model split it.
 STAGES = ["validate", "detect", "tile_wait", "model", "postprocess"]
 MODEL_SPLIT: list[str] = []
-TILE_ZOOM = 19  # must match src/utils/download.py default
+TILE_ZOOM = 19  # must match MosaicPlan.for_bounds() default in src/utils/tiles.py
 
 
 class PeakRSS:

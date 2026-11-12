@@ -17,18 +17,3 @@ class BBoxTooSmall(Exception):
     ) -> None:
         self.message = message
         super().__init__(self.message)
-
-
-class NoQueue(Exception):
-    """Raised when there is not Queue in the Queue Object defined in `feedbox.py`"""
-
-    def __init__(self, message: str = "No Queue. Database returned no Queue") -> None:
-        self.message = message
-        super().__init__(self.message)
-
-class NotSavedToDatabase(Exception):
-    """Raised when data doen't get registered to Database"""
-
-    def __init__(self, message: str = "Data not saved to database") -> None:
-        self.message = message
-        super().__init__(self.message)
