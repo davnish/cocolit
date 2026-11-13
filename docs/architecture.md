@@ -282,6 +282,50 @@ OpenTofu sets up:
 running x86 node is left untouched by each attempt. A1 shapes were out of
 capacity in Hyderabad, and so was E4, which is why the bridge node is E5.
 
+### Monitoring (`infra/monitoring`)
+
+Monitoring runs on its own k3s node, so it keeps working when the app node
+does not.
+
+```mermaid
+flowchart LR
+    subgraph app["App node (cocolit-x86)"]
+        svc[Frontend and inference<br/>OpenTelemetry SDK] -->|OTLP :4318| alloy[Grafana Alloy]
+        pods[Pods, node, kube-state-metrics] -->|scrape, tail logs| alloy
+    end
+    subgraph mon["Monitoring node (cocolit-mon)"]
+        prom[(Prometheus)]
+        loki[(Loki)]
+        tempo[(Tempo)]
+        grafana[Grafana] --> prom & loki & tempo
+        tempo -->|span metrics| prom
+    end
+    alloy -->|private network<br/>NodePorts 30090-30092| prom & loki & tempo
+    user([You]) -->|Cloudflare Tunnel + Access| grafana
+```
+
+| Signal | From | Stored in |
+|---|---|---|
+| App metrics (`cocolit_inference_*`, `http_server_*`) | OpenTelemetry SDK in both services (`src/telemetry.py`) | Prometheus |
+| Traces (website to detector to database, one per box) | OpenTelemetry SDK | Tempo |
+| Cluster and node metrics | kube-state-metrics, node-exporter, kubelet | Prometheus |
+| Pod logs and Kubernetes events | Alloy | Loki |
+
+- **App node:** the `grafana/k8s-monitoring` chart (`agent.yaml`) runs one
+  Alloy collector. The services send OTLP to it because `otel.endpoint` is
+  set in `values-oci.yaml`; without that variable the SDK stays off.
+- **Monitoring node:** `kube-prometheus-stack` (Prometheus, Grafana,
+  Alertmanager), Loki and Tempo, each as a single process storing on the
+  node's disk, with 14 to 15 days of retention.
+- **Network:** Alloy pushes to the monitoring node's private IP on NodePorts
+  30090 to 30092. The VCN security list allows those ports only from inside
+  the VCN.
+- **Dashboard and alerts:** `dashboards/cocolit.json` is loaded into Grafana
+  from a ConfigMap, and `rules.yaml` defines the alerts (server errors, slow
+  detections, restarts, memory near the limit, disk, missing telemetry).
+- **Deploy:** `scripts/deploy_monitoring.sh server` and
+  `scripts/deploy_monitoring.sh agent`.
+
 ### Images
 
 | Image | Dockerfile | Contents | Size (compressed) |

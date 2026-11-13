@@ -66,6 +66,13 @@ Frontend assets are cached at the Cloudflare edge. `index.html` references `?v=_
 - CI (`.github/workflows/ci_cd.yml`) tests, lints the chart and pushes multi-arch (amd64 + arm64) images to `ghcr.io/davnish/{streamlit-server,inference-server}` with `GITHUB_TOKEN`. It does not deploy, because the cluster is only reachable through the tunnel.
 - Docs are published from `main` (`docs_ci.yml`).
 
+## Monitoring
+
+- `infra/monitoring/` holds Helm values for a separate monitoring k3s node (`mon` in `infra/oci`): kube-prometheus-stack, Loki and Tempo, plus `agent.yaml` for the Alloy collector (`grafana/k8s-monitoring` v4) on the app node. Deploy with `scripts/deploy_monitoring.sh server|agent`.
+- The services call `setup_telemetry()` at import; it does nothing unless `OTEL_EXPORTER_OTLP_ENDPOINT` is set (the chart sets it from `otel.endpoint`). Metric names in Prometheus are the OTel names with dots as underscores and a unit suffix, e.g. `cocolit_inference_stage_duration_seconds_bucket`.
+- Alloy reaches the monitoring node over the VCN on NodePorts 30090 (Prometheus remote write), 30091 (Loki) and 30092 (Tempo OTLP gRPC).
+- The dashboard is `infra/monitoring/dashboards/cocolit.json`; alerts are in `infra/monitoring/rules.yaml`.
+
 ## Conventions
 
 - Never add Claude `Co-Authored-By` or other attribution trailers to commits or PRs.

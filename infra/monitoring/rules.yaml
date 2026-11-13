@@ -1,0 +1,71 @@
+# Alerts for the app cluster, evaluated by Prometheus on the monitoring cluster.
+# They show in Grafana (Alerting > Alert rules) and in Alertmanager. To get
+# notified, add a receiver (email, Slack, ...) under `alertmanager.config` in
+# kube-prometheus-stack.yaml.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: cocolit
+  namespace: monitoring
+spec:
+  groups:
+    - name: cocolit
+      rules:
+        - alert: CocolitTelemetryMissing
+          expr: absent(up{cluster="cocolit-app"})
+          for: 10m
+          labels: {severity: critical}
+          annotations:
+            summary: No metrics from the app cluster for 10 minutes
+            description: The app node, its Alloy collector, or the private network between the nodes is down.
+
+        - alert: CocolitServerErrors
+          expr: sum(increase(http_server_duration_milliseconds_count{cluster="cocolit-app",job="cocolit-frontend",http_status_code=~"5.."}[10m])) > 2
+          for: 5m
+          labels: {severity: critical}
+          annotations:
+            summary: The website is returning server errors
+            description: "{{ $value | printf \"%.0f\" }} responses with a 5xx status in the last 10 minutes."
+
+        - alert: CocolitSlowDetections
+          expr: histogram_quantile(0.95, sum by (le)(rate(http_server_duration_milliseconds_bucket{cluster="cocolit-app",job="cocolit-frontend",http_target="/api/inference"}[15m]))) > 15000
+          for: 15m
+          labels: {severity: warning}
+          annotations:
+            summary: Detections are slow (p95 above 15 s)
+
+        - alert: CocolitPodRestarting
+          expr: increase(kube_pod_container_status_restarts_total{cluster="cocolit-app",namespace="apps"}[30m]) > 2
+          labels: {severity: warning}
+          annotations:
+            summary: "{{ $labels.pod }} restarted more than twice in 30 minutes"
+
+        - alert: CocolitPodNotReady
+          expr: kube_pod_status_ready{cluster="cocolit-app",namespace="apps",condition="true"} == 0
+          for: 10m
+          labels: {severity: critical}
+          annotations:
+            summary: "{{ $labels.pod }} has not been ready for 10 minutes"
+
+        - alert: CocolitMemoryNearLimit
+          expr: |
+            sum by (pod, container)(container_memory_working_set_bytes{cluster="cocolit-app",namespace="apps",container!=""})
+              / sum by (pod, container)(kube_pod_container_resource_limits{cluster="cocolit-app",namespace="apps",resource="memory"}) > 0.9
+          for: 10m
+          labels: {severity: warning}
+          annotations:
+            summary: "{{ $labels.pod }} is above 90% of its memory limit"
+
+        - alert: CocolitNodeDiskFilling
+          expr: node_filesystem_avail_bytes{mountpoint="/",fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{mountpoint="/",fstype!~"tmpfs|overlay"} < 0.15
+          for: 15m
+          labels: {severity: warning}
+          annotations:
+            summary: "Less than 15% disk left on {{ $labels.instance }}"
+
+        - alert: CocolitNodeMemoryLow
+          expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < 0.1
+          for: 10m
+          labels: {severity: warning}
+          annotations:
+            summary: "Less than 10% memory available on {{ $labels.instance }}"
