@@ -1,0 +1,20 @@
+# Monitoring cluster: Tempo as one process, storing on the node's disk.
+# Chart: grafana/tempo
+tempo:
+  retention: 336h # 14 days
+  reportingEnabled: false
+  resources:
+    requests: {cpu: 50m, memory: 256Mi}
+    limits: {memory: 1536Mi}
+  # Request rate, errors and duration per service, derived from traces.
+  metricsGenerator:
+    enabled: true
+    remoteWriteUrl: http://kps-prometheus.monitoring.svc:9090/api/v1/write
+  overrides:
+    defaults:
+      metrics_generator:
+        processors: [service-graphs, span-metrics]
+
+persistence:
+  enabled: true
+  size: 10Gi

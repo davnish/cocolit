@@ -2,6 +2,10 @@ output "public_ip" {
   value = { for k, n in oci_core_instance.node : k => n.public_ip }
 }
 
+output "private_ip" {
+  value = { for k, n in oci_core_instance.node : k => n.private_ip }
+}
+
 output "ssh" {
   value = { for k, n in oci_core_instance.node : k => "ssh ubuntu@${n.public_ip}" }
 }

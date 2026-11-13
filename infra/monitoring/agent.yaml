@@ -1,0 +1,54 @@
+# App cluster: Grafana Alloy collectors that ship metrics, logs and traces to
+# the monitoring cluster. Chart: grafana/k8s-monitoring (v4).
+# MON_HOST is replaced with the monitoring node's private IP at deploy time
+# (scripts/deploy_monitoring.sh agent).
+cluster:
+  name: cocolit-app
+
+destinations:
+  prometheus:
+    type: prometheus
+    url: http://MON_HOST:30090/api/v1/write
+  loki:
+    type: loki
+    url: http://MON_HOST:30091/loki/api/v1/push
+  tempo:
+    type: otlp
+    protocol: grpc
+    url: http://MON_HOST:30092
+    tls:
+      insecure: true
+    metrics: {enabled: false}
+    logs: {enabled: false}
+    traces: {enabled: true}
+
+# Kubernetes objects and container CPU/memory.
+clusterMetrics:
+  enabled: true
+# Node CPU, memory, disk and network.
+hostMetrics:
+  enabled: true
+  linuxHosts:
+    enabled: true
+clusterEvents:
+  enabled: true
+podLogsViaLoki:
+  enabled: true
+
+# OTLP from the cocolit services, on ports 4317 (gRPC) and 4318 (HTTP).
+applicationObservability:
+  enabled: true
+  receivers:
+    otlp:
+      grpc: {enabled: true}
+      http: {enabled: true}
+
+telemetryServices:
+  kube-state-metrics: {deploy: true}
+  node-exporter: {deploy: true}
+
+# One node, so one Alloy collector does everything: a DaemonSet that scrapes
+# metrics, tails pod logs from disk and receives OTLP on 4317/4318.
+collectors:
+  alloy:
+    presets: [clustered, daemonset, filesystem-log-reader, otel-receiver]

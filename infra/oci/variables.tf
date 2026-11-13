@@ -60,6 +60,22 @@ variable "x86_memory_gb" {
   default = 6
 }
 
+variable "mon_enabled" {
+  description = "Create the monitoring node (paid; trial credits)"
+  type        = bool
+  default     = false
+}
+
+variable "mon_ocpus" {
+  type    = number
+  default = 2
+}
+
+variable "mon_memory_gb" {
+  type    = number
+  default = 12
+}
+
 variable "ocpus" {
   type    = number
   default = 2

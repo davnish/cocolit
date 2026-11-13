@@ -28,6 +28,8 @@ postgis:
   storageSize: 10Gi
 
 otel:
+  # Alloy on this cluster (scripts/deploy_monitoring.sh agent) forwards to the monitoring node.
+  endpoint: http://agent-alloy.monitoring.svc:4318
   environment: oci
 
 # Token secret: kubectl -n apps create secret generic cloudflared-token --from-literal=token=...
