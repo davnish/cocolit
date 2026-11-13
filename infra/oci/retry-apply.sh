@@ -1,7 +1,8 @@
 #!/bin/bash
 # Re-run `tofu apply` until Oracle has A1 capacity.
 # Usage: ./retry-apply.sh [seconds_between_tries]   (default 300)
-# Stops on success or on any error other than "Out of host capacity".
+# Stops on success, or on an error that is neither "Out of host capacity"
+# nor a temporary network/API error.
 set -uo pipefail
 cd "$(dirname "$0")"
 
@@ -20,10 +21,14 @@ while true; do
     tofu output
     exit 0
   fi
-  if ! grep -q "Out of host capacity" "$LOG"; then
+  if grep -q "Out of host capacity" "$LOG"; then
+    echo "[$(date '+%F %T')] no A1 capacity yet; retrying in ${INTERVAL}s"
+  elif grep -qiE "EOF|timeout|connection reset|connection refused|no such host|TLS handshake|429|TooManyRequests|503|ServiceUnavailable" "$LOG"; then
+    # Network blips and rate limits are temporary; keep going.
+    echo "[$(date '+%F %T')] temporary network or API error; retrying in ${INTERVAL}s"
+  else
     echo "[$(date '+%F %T')] apply failed for another reason; stopping (log: $LOG)" >&2
     exit "$status"
   fi
-  echo "[$(date '+%F %T')] no A1 capacity yet; retrying in ${INTERVAL}s"
   sleep "$INTERVAL"
 done
