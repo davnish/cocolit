@@ -23,7 +23,7 @@ while true; do
   fi
   if grep -q "Out of host capacity" "$LOG"; then
     echo "[$(date '+%F %T')] no A1 capacity yet; retrying in ${INTERVAL}s"
-  elif grep -qiE "EOF|timeout|connection reset|connection refused|no such host|TLS handshake|429|TooManyRequests|503|ServiceUnavailable" "$LOG"; then
+  elif grep -qiE "EOF|timeout|read tcp|dial tcp|write tcp|can.t assign requested address|network is unreachable|broken pipe|connection reset|connection refused|no such host|TLS handshake|429|TooManyRequests|503|ServiceUnavailable" "$LOG"; then
     # Network blips and rate limits are temporary; keep going.
     echo "[$(date '+%F %T')] temporary network or API error; retrying in ${INTERVAL}s"
   else
