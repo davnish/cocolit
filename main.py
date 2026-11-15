@@ -14,6 +14,9 @@ import geopandas as gpd
 from src.data_struct.bbox import BBox
 from src.exceptions.exceptions import BBoxTooBig, BBoxTooSmall
 from src.inference_router import InferenceRouter
+from src.status import get_status
+from src.telemetry import setup_telemetry
+from opentelemetry import metrics
 import logging
 
 @asynccontextmanager
@@ -29,6 +32,14 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Cocolit API", lifespan=lifespan)
+# No-op unless OTEL_EXPORTER_OTLP_ENDPOINT is set (see src/telemetry.py).
+setup_telemetry(app, "cocolit-frontend", db_engine=engine)
+
+INFERENCE_REQUESTS = metrics.get_meter("cocolit.frontend").create_counter(
+    "cocolit.frontend.inference.requests",
+    unit="{request}",
+    description="Inference requests by the backend that served them (local or overflow)",
+)
 
 def read_config() -> dict:
     with open("configs/config.yml", "r") as f:
@@ -90,6 +101,7 @@ async def run_inference(req: InferenceRequest, response: Response):
         # Blocking HTTP + geopandas work: keep it off the event loop.
         preds_gdf, backend = await asyncio.to_thread(inference_request, bbox)
         response.headers["X-Inference-Backend"] = backend
+        INFERENCE_REQUESTS.add(1, {"backend": backend})
         
         # Save to database (assumes preds_bbox_to_database handles 3857)
         if engine:
@@ -150,6 +162,13 @@ async def get_statistics():
     except Exception as e:
         logger.error(f"Stats error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/status")
+async def get_server_status(response: Response):
+    """Live server numbers for the page; {"available": false} without monitoring."""
+    response.headers["Cache-Control"] = "public, max-age=30"
+    return await asyncio.to_thread(get_status)
+
 
 @app.get("/healthz")
 def healthz():

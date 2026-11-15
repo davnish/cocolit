@@ -49,6 +49,8 @@ no longer Streamlit.
   the router for predictions, save them and return them in EPSG:4326.
 - **Statistics** (`GET /api/statistics`): totals, a per-country table and
   heatmap points for every saved detection.
+- **Monitoring** (`GET /api/status`): live server numbers for the page,
+  read from the monitoring node (see [Monitoring](#monitoring-inframonitoring)).
 
 It also exposes `GET /healthz` for Kubernetes probes and creates any missing
 database tables on startup.
@@ -281,6 +283,64 @@ OpenTofu sets up:
 `retry-apply.sh` re-runs `tofu apply` until Oracle has A1 capacity; the
 running x86 node is left untouched by each attempt. A1 shapes were out of
 capacity in Hyderabad, and so was E4, which is why the bridge node is E5.
+
+### Monitoring (`infra/monitoring`)
+
+Monitoring runs on its own k3s node, so it keeps working when the app node
+does not.
+
+```mermaid
+flowchart LR
+    subgraph app["App node (cocolit-x86)"]
+        svc[Frontend and inference<br/>OpenTelemetry SDK] -->|OTLP :4318| alloy[Grafana Alloy]
+        pods[Pods, node, kube-state-metrics] -->|scrape, tail logs| alloy
+    end
+    subgraph mon["Monitoring node (cocolit-mon)"]
+        prom[(Prometheus)]
+        loki[(Loki)]
+        tempo[(Tempo)]
+        grafana[Grafana] --> prom & loki & tempo
+        tempo -->|span metrics| prom
+    end
+    alloy -->|private network<br/>NodePorts 30090-30092| prom & loki & tempo
+    svc -.->|/api/status reads<br/>30090, 30093| prom & tempo
+    user([Visitors]) -->|Cloudflare Tunnel| grafana
+```
+
+| Signal | From | Stored in |
+|---|---|---|
+| App metrics (`cocolit_inference_*`, `http_server_*`) | OpenTelemetry SDK in both services (`src/telemetry.py`) | Prometheus |
+| Traces (website to detector to database, one per box) | OpenTelemetry SDK | Tempo |
+| Cluster and node metrics | kube-state-metrics, node-exporter, kubelet | Prometheus |
+| Pod logs and Kubernetes events | Alloy | Loki |
+
+- **App node:** the `grafana/k8s-monitoring` chart (`agent.yaml`) runs one
+  Alloy collector. The services send OTLP to it because `otel.endpoint` is
+  set in `values-oci.yaml`; without that variable the SDK stays off.
+- **Monitoring node:** `kube-prometheus-stack` (Prometheus, Grafana,
+  Alertmanager), Loki and Tempo, each as a single process storing on the
+  node's disk, with 14 to 15 days of retention.
+- **Network:** Alloy pushes to the monitoring node's private IP on NodePorts
+  30090 to 30092. The VCN security list allows those ports only from inside
+  the VCN.
+- **Dashboard and alerts:** `dashboards/cocolit.json` is loaded into Grafana
+  from a ConfigMap, and `rules.yaml` defines the alerts (server errors, slow
+  detections, restarts, memory near the limit, disk, missing telemetry).
+- **On the page:** the website's `GET /api/status` (`src/status.py`) runs a
+  fixed set of Prometheus queries and fetches the latest detection trace from
+  Tempo, over the same private network (NodePorts 30090 and 30093), and
+  caches the answer for 30 seconds. The page's Monitoring section
+  (`static/js/status.js`) draws CPU, memory and disk with their 7-day peaks,
+  each container's memory against its limit, the p95 time per stage and the
+  traced request. Visitors get numbers only: span names and durations, never
+  span attributes. The URLs come from `monitoring.prometheusUrl` and
+  `monitoring.tempoUrl` in the chart; when they are unset or the monitoring
+  node is unreachable the section hides itself.
+- **Public dashboard:** the Cocolit dashboard is shared read-only from
+  Grafana (a public-dashboard link, stored in Grafana's database rather than
+  in this repo). The section links to it.
+- **Deploy:** `scripts/deploy_monitoring.sh server` and
+  `scripts/deploy_monitoring.sh agent`.
 
 ### Images
 

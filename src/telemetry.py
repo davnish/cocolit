@@ -64,8 +64,9 @@ def setup_telemetry(app: FastAPI, service_name: str, db_engine=None) -> bool:
         MeterProvider(resource=resource, metric_readers=[metric_reader])
     )
 
-    # Server spans + HTTP server metrics for every route except health checks.
-    FastAPIInstrumentor.instrument_app(app, excluded_urls="health")
+    # Server spans + HTTP server metrics for every route except health checks
+    # and the page's status poll (it would drown out real requests).
+    FastAPIInstrumentor.instrument_app(app, excluded_urls="health,api/status")
     # Client spans for outgoing calls; also injects the traceparent header so
     # the frontend -> inference call continues the same trace.
     RequestsInstrumentor().instrument()

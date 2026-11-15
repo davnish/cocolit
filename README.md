@@ -185,6 +185,8 @@ Cocolit is built to run **for free**:
 - **Cloudflare** sits in front: the domain, HTTPS, rate limiting, and a
   tunnel, so the server never opens a port to the internet.
 - **Google Cloud Run** holds a backup detector that costs nothing when idle.
+- **A second small server watches the first**: Grafana, Prometheus, Loki and
+  Tempo show requests, errors, timings, logs and a trace for every box drawn.
 
 Deploy scripts: [`scripts/deploy_oci.sh`](scripts/deploy_oci.sh) (Oracle
 Cloud), [`scripts/deploy_cloud_run.sh`](scripts/deploy_cloud_run.sh) (backup
@@ -220,7 +222,6 @@ Release notes for each version are on the
 ## 🧭 What's next
 
 - ⬇️ Download your results as GeoJSON or a shapefile
-- 📈 Live dashboards and tracing in Grafana Cloud
 - ⚡ A faster INT8 model, once it's checked against labelled data
 - 🗺️ Remembering areas that were already scanned
 

@@ -1,0 +1,79 @@
+# Monitoring cluster: Prometheus, Grafana, Alertmanager and the cluster's own metrics.
+# Chart: prometheus-community/kube-prometheus-stack
+fullnameOverride: kps
+
+# k3s runs these inside one binary; there is nothing to scrape.
+kubeControllerManager: {enabled: false}
+kubeScheduler: {enabled: false}
+kubeProxy: {enabled: false}
+kubeEtcd: {enabled: false}
+
+prometheus:
+  prometheusSpec:
+    # The app cluster's Alloy and Tempo's metrics generator push here.
+    enableRemoteWriteReceiver: true
+    externalLabels:
+      cluster: cocolit-mon
+    retention: 15d
+    retentionSize: 15GB
+    resources:
+      requests: {cpu: 100m, memory: 512Mi}
+      limits: {memory: 2Gi}
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: [ReadWriteOnce]
+          resources:
+            requests:
+              storage: 20Gi
+    # Pick up rules and monitors from any namespace, not only this release.
+    ruleSelectorNilUsesHelmValues: false
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+
+alertmanager:
+  alertmanagerSpec:
+    resources:
+      requests: {cpu: 10m, memory: 64Mi}
+      limits: {memory: 128Mi}
+
+grafana:
+  admin:
+    existingSecret: grafana-admin
+    userKey: admin-user
+    passwordKey: admin-password
+  persistence:
+    enabled: true
+    size: 5Gi
+  grafana.ini:
+    server:
+      root_url: https://grafana.prithvilabs.com
+    analytics:
+      reporting_enabled: false
+      check_for_updates: false
+  resources:
+    requests: {cpu: 50m, memory: 192Mi}
+    limits: {memory: 512Mi}
+  sidecar:
+    dashboards:
+      searchNamespace: ALL
+  additionalDataSources:
+    - name: Loki
+      uid: loki
+      type: loki
+      access: proxy
+      url: http://loki.monitoring.svc:3100
+    - name: Tempo
+      uid: tempo
+      type: tempo
+      access: proxy
+      url: http://tempo.monitoring.svc:3200
+      jsonData:
+        tracesToLogsV2:
+          datasourceUid: loki
+          filterByTraceID: false
+          tags: [{key: service.name, value: service_name}]
+        serviceMap:
+          datasourceUid: prometheus
+        nodeGraph:
+          enabled: true

@@ -20,6 +20,15 @@ locals {
       memory_gb   = var.x86_memory_gb
       data_volume = false
     }
+    # Monitoring cluster (Grafana, Prometheus, Loki, Tempo), kept apart from
+    # the app node so it still works when the app node does not.
+    mon = {
+      enabled     = var.mon_enabled
+      shape       = var.x86_shape
+      ocpus       = var.mon_ocpus
+      memory_gb   = var.mon_memory_gb
+      data_volume = false
+    }
   }
   nodes = { for k, v in local.all_nodes : k => v if v.enabled }
 }
@@ -98,6 +107,18 @@ resource "oci_core_security_list" "node" {
     tcp_options {
       min = 22
       max = 22
+    }
+  }
+
+  # Telemetry from the app node to the monitoring node's NodePorts
+  # (Prometheus remote write, Loki push, Tempo OTLP). VCN-internal only.
+  ingress_security_rules {
+    description = "Telemetry NodePorts inside the VCN"
+    source      = "10.0.0.0/16"
+    protocol    = "6"
+    tcp_options {
+      min = 30090
+      max = 30099
     }
   }
 

@@ -7,6 +7,7 @@ from src.data_struct.bbox import BBox, BBoxBounds
 from pipelines.inference import InferencePipeline
 from fastapi.responses import ORJSONResponse
 from src.exceptions.exceptions import BBoxTooBig, BBoxTooSmall
+from src.telemetry import setup_telemetry
 import yaml
 
 def read_config()-> dict:
@@ -18,6 +19,8 @@ def read_config()-> dict:
 config = read_config()
 
 app = FastAPI()
+# No-op unless OTEL_EXPORTER_OTLP_ENDPOINT is set (see src/telemetry.py).
+setup_telemetry(app, "cocolit-inference")
 
 # Set on public deployments (Cloud Run); the in-cluster service can leave it unset.
 API_KEY = os.environ.get("INFERENCE_API_KEY") or None
