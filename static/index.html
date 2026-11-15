@@ -28,6 +28,10 @@
                 <span class="brand-mark" aria-hidden="true">🌴</span>
             </a>
             <nav class="social-links" aria-label="Project links">
+                <a id="live-nav" class="docs-link live-nav" href="#live" hidden aria-label="Monitoring: live server numbers" title="Monitoring">
+                    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>
+                    <span class="docs-link-label">Monitoring</span>
+                </a>
                 <a class="docs-link" href="https://davnish.github.io/cocolit/architecture/" target="_blank" rel="noopener" aria-label="How Cocolit works (documentation)" title="How it works">
                     <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>
                     <span class="docs-link-label">How it works</span>
@@ -47,14 +51,10 @@
         <section class="intro">
             <h1>Count coconut trees from space</h1>
             <p class="lede">Draw a box on the satellite map and a detection model marks every coconut tree inside it.</p>
-            <ol class="steps">
-                <li><span class="step-num">1</span><span><strong>Find an area</strong> by panning or searching</span></li>
-                <li><span class="step-num">2</span><span><strong>Draw a box</strong> by dragging over the trees</span></li>
-                <li><span class="step-num">3</span><span><strong>See the count</strong> with each tree marked</span></li>
-            </ol>
         </section>
 
-        <!-- Map card: toolbar + map -->
+        <!-- Workspace: the map with this session's numbers beside it -->
+        <div class="workspace">
         <section class="map-card" aria-label="Detection map">
             <div class="map-toolbar">
                 <button id="draw-btn" class="btn btn-primary" type="button" aria-pressed="false">
@@ -85,20 +85,75 @@
             </div>
         </section>
 
-        <!-- Results of this session -->
-        <section class="metrics-section" aria-label="Your results">
-            <div class="metric-card">
-                <h3>Area scanned</h3>
-                <p class="metric-value"><span id="metric-area">0.000</span><span class="metric-unit">km²</span></p>
+        <!-- This session's count, with the three steps (beside the map on wide screens) -->
+        <aside class="side-panel" aria-label="Your results">
+            <h2 class="panel-title">Your count</h2>
+            <div class="metrics-section">
+                <div class="metric-card metric-hero">
+                    <h3>Trees found</h3>
+                    <p class="metric-value"><span id="metric-count">0</span></p>
+                </div>
+                <div class="metric-card">
+                    <h3>Area scanned</h3>
+                    <p class="metric-value"><span id="metric-area">0.000</span><span class="metric-unit">km²</span></p>
+                </div>
+                <div class="metric-card">
+                    <h3>Trees per km²</h3>
+                    <p class="metric-value"><span id="metric-density">0</span></p>
+                </div>
             </div>
-            <div class="metric-card">
-                <h3>Trees found</h3>
-                <p class="metric-value"><span id="metric-count">0</span></p>
+            <div class="panel-howto">
+                <h2 class="panel-title">How to use it</h2>
+                <ol class="steps">
+                    <li><span class="step-num">1</span><span><strong>Find an area</strong> by panning or searching</span></li>
+                    <li><span class="step-num">2</span><span><strong>Draw a box</strong> by dragging over the trees</span></li>
+                    <li><span class="step-num">3</span><span><strong>See the count</strong> with each tree marked</span></li>
+                </ol>
+                <p class="panel-note">Each box can cover up to 0.5 km². Draw more boxes to add to the count.</p>
             </div>
-            <div class="metric-card">
-                <h3>Trees per km²</h3>
-                <p class="metric-value"><span id="metric-density">0</span></p>
+        </aside>
+        </div>
+
+        <!-- Live numbers from the server (hidden when monitoring is not connected) -->
+        <section id="live" class="live-section" hidden aria-labelledby="live-title">
+            <div class="section-head live-head">
+                <div>
+                    <h2 id="live-title" class="section-title">Monitoring</h2>
+                    <p class="section-sub">Live numbers from the server running this page. <span id="live-updated"></span></p>
+                </div>
+                <a class="btn btn-ghost live-link" href="https://grafana.prithvilabs.com/public-dashboards/6758ee5872ba4c02aea2066c0064e647" target="_blank" rel="noopener">Open the full dashboard
+                    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
+                </a>
             </div>
+
+            <h3 class="live-group">The server <span id="live-server-sub"></span></h3>
+            <div id="live-tiles" class="live-tiles"></div>
+
+            <h3 class="live-group">What runs on it <span>memory against each container's limit</span></h3>
+            <div id="live-pods" class="live-tiles"></div>
+
+            <h3 class="live-group">One detection, start to finish</h3>
+            <div class="live-split">
+                <article class="live-card">
+                    <div class="trace-head">
+                        <div>
+                            <h4 class="live-card-title">The latest request, traced</h4>
+                            <p id="live-trace-sub" class="live-card-sub">Where the time went</p>
+                        </div>
+                        <ul class="legend" aria-label="Services">
+                            <li><span class="swatch swatch-web"></span>Website</li>
+                            <li><span class="swatch swatch-det"></span>Detector</li>
+                        </ul>
+                    </div>
+                    <div id="live-trace" class="trace"></div>
+                </article>
+                <article class="live-card">
+                    <h4 class="live-card-title">Time per step</h4>
+                    <p id="live-stages-sub" class="live-card-sub">95th percentile</p>
+                    <div id="live-stages" class="hbars"></div>
+                </article>
+            </div>
+            <div id="viz-tip" class="viz-tip" role="status" hidden></div>
         </section>
 
         <!-- Everyone's results -->
@@ -150,5 +205,6 @@
     <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
     <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
     <script src="js/app.js?v=__ASSET_VERSION__"></script>
+    <script src="js/status.js?v=__ASSET_VERSION__"></script>
 </body>
 </html>

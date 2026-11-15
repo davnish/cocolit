@@ -59,6 +59,12 @@ otel:
   endpoint: ""
   environment: production
 
+# Read side of monitoring, for the "Live from the server" section of the page
+# (GET /api/status). Leave empty to hide the section.
+monitoring:
+  prometheusUrl: ""
+  tempoUrl: ""
+
 postgis:
   image: ghcr.io/cloudnative-pg/postgis:16
   storageSize: 10Gi

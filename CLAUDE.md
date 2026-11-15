@@ -72,6 +72,7 @@ Frontend assets are cached at the Cloudflare edge. `index.html` references `?v=_
 - The services call `setup_telemetry()` at import; it does nothing unless `OTEL_EXPORTER_OTLP_ENDPOINT` is set (the chart sets it from `otel.endpoint`). Metric names in Prometheus are the OTel names with dots as underscores and a unit suffix, e.g. `cocolit_inference_stage_duration_seconds_bucket`.
 - Alloy reaches the monitoring node over the VCN on NodePorts 30090 (Prometheus remote write), 30091 (Loki) and 30092 (Tempo OTLP gRPC).
 - The dashboard is `infra/monitoring/dashboards/cocolit.json`; alerts are in `infra/monitoring/rules.yaml`.
+- The page's Monitoring section reads `GET /api/status` (`src/status.py`, drawn by `static/js/status.js`): fixed Prometheus queries plus the latest Tempo trace, via NodePorts 30090 and 30093 on the monitoring node (`monitoring.prometheusUrl` / `monitoring.tempoUrl` in the chart). Only numbers, span names and durations may leave that module. New website modules must be added to `frontend.Dockerfile`'s COPY list.
 
 ## Conventions
 

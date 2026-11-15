@@ -1,5 +1,7 @@
-# Ingest endpoints for the app cluster, reachable only inside the VCN
+# Endpoints for the app cluster, reachable only inside the VCN
 # (ports 30090-30099 are allowed from 10.0.0.0/16 in infra/oci/main.tf).
+# 30090-30092 take metrics, logs and traces in; the website also reads
+# Prometheus (30090) and Tempo (30093) for its "Live from the server" section.
 apiVersion: v1
 kind: Service
 metadata:
@@ -36,3 +38,15 @@ spec:
     app.kubernetes.io/name: tempo
   ports:
     - {name: otlp-grpc, port: 4317, targetPort: 4317, nodePort: 30092}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: query-tempo
+  namespace: monitoring
+spec:
+  type: NodePort
+  selector:
+    app.kubernetes.io/name: tempo
+  ports:
+    - {name: http, port: 3200, targetPort: 3200, nodePort: 30093}

@@ -32,6 +32,13 @@ otel:
   endpoint: http://agent-alloy.monitoring.svc:4318
   environment: oci
 
+# The page's "Live from the server" section reads from the monitoring node's
+# private IP (tofu -chdir=infra/oci output private_ip): Prometheus on NodePort
+# 30090, Tempo's query API on 30093. Both are reachable only inside the VCN.
+monitoring:
+  prometheusUrl: http://10.0.1.81:30090
+  tempoUrl: http://10.0.1.81:30093
+
 # Token secret: kubectl -n apps create secret generic cloudflared-token --from-literal=token=...
 cloudflared:
   enabled: true

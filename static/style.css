@@ -110,9 +110,11 @@ a { color: inherit; }
     padding: 0 0.75rem;
     font-size: 0.875rem;
     font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
     .social-links a.docs-link { width: 38px; padding: 0; }
     .docs-link-label { display: none; }
 }
@@ -257,8 +259,9 @@ a { color: inherit; }
 
 .map-wrapper {
     position: relative;
-    height: 62vh;
-    min-height: 420px;
+    height: 50vh;
+    min-height: 360px;
+    max-height: 560px;
 }
 
 #main-map { width: 100%; height: 100%; }
@@ -334,6 +337,74 @@ a { color: inherit; }
     margin-bottom: 0.9rem;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------------------------------------------------------------------------
+   Workspace: map on the left, this session's count and the steps on the right
+--------------------------------------------------------------------------- */
+.workspace { display: grid; gap: 1rem; }
+.panel-title { display: none; }
+.panel-howto { display: none; }
+
+/* Narrow screens: no room beside the map, so the count is one compact bar above it. */
+@media (max-width: 900px) {
+    .workspace { gap: 0.6rem; }
+    .side-panel { order: -1; }
+    .side-panel .metrics-section {
+        grid-template-columns: 1.1fr 1fr 1fr;
+        gap: 0;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        background: var(--surface-soft);
+    }
+    .side-panel .metric-card {
+        background: none;
+        border: none;
+        border-radius: 0;
+        padding: 0.5rem 0.75rem;
+        text-align: left;
+    }
+    .side-panel .metric-card + .metric-card { border-left: 1px solid var(--border-color); }
+    .side-panel .metric-card h3 { font-size: 0.65rem; white-space: nowrap; }
+    .side-panel .metric-value { font-size: 1.15rem; margin-top: 0.1rem; color: var(--text-main); }
+    .side-panel .metric-hero .metric-value { color: var(--accent-green); }
+    .side-panel .metric-unit { display: inline; margin: 0 0 0 0.25rem; font-size: 0.7rem; }
+}
+
+@media (min-width: 901px) {
+    .workspace { grid-template-columns: minmax(0, 1fr) 17.5rem; align-items: stretch; }
+
+    .side-panel {
+        display: flex;
+        flex-direction: column;
+        padding: 1.4rem 1.4rem 1.25rem;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius);
+        background: var(--surface);
+    }
+    .panel-title {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+    }
+
+    /* One hero number, two supporting ones: no boxes inside the panel. */
+    .side-panel .metrics-section { grid-template-columns: 1fr 1fr; gap: 1.1rem 1rem; margin-top: 0.9rem; }
+    .side-panel .metric-card { background: none; border: none; border-radius: 0; padding: 0; }
+    .side-panel .metric-hero { grid-column: 1 / -1; padding-bottom: 1.1rem; border-bottom: 1px solid var(--border-color); }
+    .side-panel .metric-card h3 { font-size: 0.8rem; text-transform: none; letter-spacing: 0; font-weight: 500; }
+    .side-panel .metric-value { font-size: 1.35rem; color: var(--text-main); margin-top: 0.2rem; }
+    .side-panel .metric-hero .metric-value { font-size: 3.25rem; color: var(--accent-green); letter-spacing: -0.03em; }
+    .side-panel .metric-unit { font-size: 0.8rem; margin-left: 0.25rem; }
+
+    .panel-howto { display: block; margin-top: 1.5rem; padding-top: 1.4rem; border-top: 1px solid var(--border-color); }
+    .side-panel .steps { flex-direction: column; flex-wrap: nowrap; justify-content: flex-start; gap: 0.85rem; margin-top: 0.9rem; }
+    .side-panel .steps li { padding: 0; border: none; border-radius: 0; background: none; align-items: flex-start; line-height: 1.4; }
+    .side-panel .steps strong { display: block; }
+    .panel-note { margin-top: 1.25rem; color: var(--text-muted); font-size: 0.8rem; line-height: 1.5; }
+}
 
 /* ---------------------------------------------------------------------------
    Session metrics
@@ -439,6 +510,141 @@ th {
 .num, td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
 
 /* ---------------------------------------------------------------------------
+   Live from the server (static/js/status.js)
+--------------------------------------------------------------------------- */
+.live-section {
+    --series-web: #b87d18;   /* website spans */
+    --series-det: #3987c9;   /* detector spans and stages */
+    --meter: #3d9c74;
+    position: relative;
+    margin-top: 1.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-color);
+}
+.live-section[hidden], .social-links a[hidden] { display: none; }
+.live-section { scroll-margin-top: 4.5rem; }
+
+.live-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.5rem;
+}
+.live-link { text-decoration: none; font-size: 0.875rem; min-height: 38px; }
+.live-link:hover { border-color: var(--accent); color: var(--accent); }
+
+.live-card {
+    background: var(--surface-soft);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 1.1rem 1.25rem 1.25rem;
+    min-width: 0;
+}
+.live-card-title { font-size: 1rem; font-weight: 600; }
+.live-card-sub { color: var(--text-muted); font-size: 0.8rem; margin-top: 0.15rem; }
+.live-empty { color: var(--text-muted); font-size: 0.9rem; margin-top: 1rem; }
+
+/* Tiles: server gauges and containers */
+.live-group {
+    margin: 1.5rem 0 0.6rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-main);
+}
+.live-group span { margin-left: 0.5rem; color: var(--text-muted); font-weight: 500; text-transform: none; letter-spacing: 0; }
+.live-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
+.live-split { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
+
+.tile {
+    background: var(--surface-soft);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 0.9rem 1.1rem 1rem;
+    min-width: 0;
+}
+.tile-label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); }
+.tile-value { margin-top: 0.15rem; font-size: 1.6rem; font-weight: 700; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.tile-value small { margin-left: 0.3rem; font-size: 0.8rem; font-weight: 500; color: var(--text-muted); }
+.tile-detail { color: var(--text-muted); font-size: 0.78rem; margin-top: 0.4rem; }
+.meter-track {
+    height: 8px;
+    position: relative;
+    margin-top: 0.55rem;
+    border-radius: 4px;
+    background: rgba(244, 241, 232, 0.08);
+    overflow: hidden;
+}
+.meter-fill { height: 100%; border-radius: 4px; background: var(--meter); transition: width 0.4s ease; }
+/* Highest value seen in the window: a tick on the bar, keyed in the line below. */
+.meter-peak { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--text-main); }
+.tile-peak { display: flex; align-items: center; gap: 0.4rem; color: var(--text-muted); font-size: 0.78rem; margin-top: 0.25rem; }
+.peak-key { flex: none; width: 2px; height: 0.8rem; background: var(--text-main); }
+
+.spark { margin-top: 0.6rem; }
+.spark svg { display: block; width: 100%; height: 28px; overflow: visible; touch-action: pan-y; }
+.spark-line { fill: none; stroke: var(--meter); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.spark-base { stroke: rgba(244, 241, 232, 0.12); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.spark-dot { fill: var(--text-main); stroke: var(--surface); stroke-width: 2; }
+.spark-note { display: block; color: var(--text-muted); font-size: 0.7rem; margin-top: 0.2rem; }
+
+
+/* Time per step */
+.hbars { display: flex; flex-direction: column; gap: 0.7rem; margin-top: 1rem; }
+.hbar-row { display: grid; grid-template-columns: 1fr auto; gap: 0.3rem 0.75rem; align-items: center; font-size: 0.85rem; }
+.hbar-label { color: var(--text-main); }
+.hbar-value { color: var(--text-muted); font-variant-numeric: tabular-nums; text-align: right; }
+.hbar-track { grid-column: 1 / -1; grid-row: 2; height: 10px; }
+.hbar { height: 100%; min-width: 3px; border-radius: 0 4px 4px 0; background: var(--series-det); }
+
+/* Trace waterfall */
+.trace-head { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem 1.5rem; }
+.legend { list-style: none; display: flex; gap: 1rem; color: var(--text-muted); font-size: 0.8rem; }
+.legend li { display: inline-flex; align-items: center; gap: 0.4rem; }
+.swatch { width: 10px; height: 10px; border-radius: 3px; }
+.swatch-web { background: var(--series-web); }
+.swatch-det { background: var(--series-det); }
+
+.trace { margin-top: 1rem; }
+.trace-row {
+    display: grid;
+    grid-template-columns: minmax(0, 17rem) minmax(0, 1fr) 4.5rem;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.35rem 0;
+    border-radius: 6px;
+}
+.trace-row:not(.trace-axis):hover { background: rgba(244, 241, 232, 0.04); }
+.trace-name { min-width: 0; }
+.trace-label { display: block; font-size: 0.875rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.trace-raw { display: block; color: var(--text-muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.7rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.trace-lane { position: relative; height: 14px; border-left: 1px solid rgba(244, 241, 232, 0.12); }
+.trace-bar { position: absolute; top: 0; height: 100%; min-width: 3px; border-radius: 4px; }
+.trace-bar.is-web { background: var(--series-web); }
+.trace-bar.is-det { background: var(--series-det); }
+.trace-time { color: var(--text-muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; text-align: right; }
+.trace-ticks { display: flex; justify-content: space-between; height: auto; border-left: none; color: var(--text-muted); font-size: 0.7rem; font-variant-numeric: tabular-nums; }
+
+.viz-tip {
+    position: absolute;
+    z-index: 1500;
+    max-width: 280px;
+    padding: 0.5rem 0.65rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: #1c2b25;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    line-height: 1.4;
+    pointer-events: none;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+.viz-tip[hidden] { display: none; }
+.viz-tip-title { color: var(--text-main); font-weight: 600; }
+
+/* ---------------------------------------------------------------------------
    Footer
 --------------------------------------------------------------------------- */
 .footer {
@@ -455,6 +661,8 @@ th {
    Responsive
 --------------------------------------------------------------------------- */
 @media (max-width: 900px) {
+    .live-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .live-split { grid-template-columns: 1fr; }
     .stats-grid { grid-template-columns: 1fr; }
     .heatmap-wrapper { height: 340px; }
 }
@@ -464,19 +672,20 @@ th {
     .app-container { padding-top: 1.5rem; gap: 1.25rem; }
     .intro h1 { font-size: 1.5rem; }
     .lede { font-size: 0.9rem; margin-top: 0.5rem; }
-    /* The toolbar status line already guides each step; keep the map above the fold. */
-    .steps { display: none; }
     .map-toolbar { padding: 0.75rem; }
     .map-toolbar .btn { flex: 1 1 auto; padding: 0 0.75rem; }
     .brand { font-size: 1.15rem; }
     .brand-org { font-size: 0.8rem; }
     .map-status { flex-basis: 100%; }
-    .map-wrapper { height: 58vh; min-height: 360px; }
+    .map-wrapper { height: 48vh; min-height: 320px; }
     .map-coords { padding: 0.5rem 0.75rem; gap: 0.5rem; font-size: 0.8rem; }
     .coords-label { display: none; }
-    .metrics-section { grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; }
-    .metric-card { padding: 0.75rem; text-align: center; }
-    .metric-card h3 { font-size: 0.65rem; }
-    .metric-value { font-size: 1.35rem; }
-    .metric-unit { display: block; margin: 0.15rem 0 0; font-size: 0.75rem; }
+    .live-tiles { gap: 0.6rem; }
+    .tile { padding: 0.75rem 0.85rem 0.85rem; }
+    .tile-value { font-size: 1.3rem; }
+    .live-group span { display: block; margin: 0.15rem 0 0; }
+    .trace-row { grid-template-columns: minmax(0, 1fr) 4.5rem; gap: 0.25rem 0.75rem; }
+    .trace-row .trace-lane { grid-column: 1 / -1; grid-row: 2; }
+    .trace-raw { display: none; }
+    .trace-name { padding-left: 0 !important; }
 }

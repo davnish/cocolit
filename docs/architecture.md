@@ -50,6 +50,9 @@ no longer Streamlit.
 - **Statistics** (`GET /api/statistics`): totals, a per-country table and
   heatmap points for every saved detection.
 
+- **Monitoring** (`GET /api/status`): live server numbers for the page,
+  read from the monitoring node (see [Monitoring](#monitoring-inframonitoring)).
+
 It also exposes `GET /healthz` for Kubernetes probes and creates any missing
 database tables on startup.
 
@@ -301,7 +304,8 @@ flowchart LR
         tempo -->|span metrics| prom
     end
     alloy -->|private network<br/>NodePorts 30090-30092| prom & loki & tempo
-    user([You]) -->|Cloudflare Tunnel + Access| grafana
+    svc -.->|/api/status reads<br/>30090, 30093| prom & tempo
+    user([Visitors]) -->|Cloudflare Tunnel| grafana
 ```
 
 | Signal | From | Stored in |
@@ -323,6 +327,19 @@ flowchart LR
 - **Dashboard and alerts:** `dashboards/cocolit.json` is loaded into Grafana
   from a ConfigMap, and `rules.yaml` defines the alerts (server errors, slow
   detections, restarts, memory near the limit, disk, missing telemetry).
+- **On the page:** the website's `GET /api/status` (`src/status.py`) runs a
+  fixed set of Prometheus queries and fetches the latest detection trace from
+  Tempo, over the same private network (NodePorts 30090 and 30093), and
+  caches the answer for 30 seconds. The page's Monitoring section
+  (`static/js/status.js`) draws CPU, memory and disk with their 7-day peaks,
+  each container's memory against its limit, the p95 time per stage and the
+  traced request. Visitors get numbers only: span names and durations, never
+  span attributes. The URLs come from `monitoring.prometheusUrl` and
+  `monitoring.tempoUrl` in the chart; when they are unset or the monitoring
+  node is unreachable the section hides itself.
+- **Public dashboard:** the Cocolit dashboard is shared read-only from
+  Grafana (a public-dashboard link, stored in Grafana's database rather than
+  in this repo). The section links to it.
 - **Deploy:** `scripts/deploy_monitoring.sh server` and
   `scripts/deploy_monitoring.sh agent`.
 

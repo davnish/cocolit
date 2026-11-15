@@ -14,6 +14,7 @@ import geopandas as gpd
 from src.data_struct.bbox import BBox
 from src.exceptions.exceptions import BBoxTooBig, BBoxTooSmall
 from src.inference_router import InferenceRouter
+from src.status import get_status
 from src.telemetry import setup_telemetry
 from opentelemetry import metrics
 import logging
@@ -161,6 +162,13 @@ async def get_statistics():
     except Exception as e:
         logger.error(f"Stats error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/status")
+async def get_server_status(response: Response):
+    """Live server numbers for the page; {"available": false} without monitoring."""
+    response.headers["Cache-Control"] = "public, max-age=30"
+    return await asyncio.to_thread(get_status)
+
 
 @app.get("/healthz")
 def healthz():

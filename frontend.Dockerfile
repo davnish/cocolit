@@ -32,6 +32,7 @@ COPY src/exceptions ./src/exceptions
 COPY src/data_struct/__init__.py src/data_struct/bbox.py ./src/data_struct/
 COPY src/utils/__init__.py src/utils/mercator.py ./src/utils/
 COPY src/telemetry.py ./src/telemetry.py
+COPY src/status.py ./src/status.py
 COPY main.py ./main.py
 COPY static ./static
 # Cache-bust JS/CSS (Cloudflare caches them for hours; the HTML itself is not cached).

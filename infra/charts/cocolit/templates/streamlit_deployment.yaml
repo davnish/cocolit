@@ -50,6 +50,14 @@ spec:
             secretKeyRef:
               name: postgres-credentials
               key: password
+        {{- with .Values.monitoring.prometheusUrl }}
+        - name: MONITORING_PROMETHEUS_URL
+          value: {{ . | quote }}
+        {{- end }}
+        {{- with .Values.monitoring.tempoUrl }}
+        - name: MONITORING_TEMPO_URL
+          value: {{ . | quote }}
+        {{- end }}
         {{- include "cocolit.otelEnv" (dict "root" . "service" "cocolit-frontend") | nindent 8 }}
         envFrom:
         - secretRef:
