@@ -49,7 +49,6 @@ no longer Streamlit.
   the router for predictions, save them and return them in EPSG:4326.
 - **Statistics** (`GET /api/statistics`): totals, a per-country table and
   heatmap points for every saved detection.
-
 - **Monitoring** (`GET /api/status`): live server numbers for the page,
   read from the monitoring node (see [Monitoring](#monitoring-inframonitoring)).
 

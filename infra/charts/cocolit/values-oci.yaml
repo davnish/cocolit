@@ -4,12 +4,12 @@
 streamlit:
   image:
     repository: ghcr.io/davnish/streamlit-server
-    tag: 66d0260
+    tag: 4d3b1b8
 
 inference:
   image:
     repository: ghcr.io/davnish/inference-server
-    tag: 66d0260
+    tag: 4d3b1b8
   resources:
     requests:
       cpu: 500m
