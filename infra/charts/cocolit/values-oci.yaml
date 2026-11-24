@@ -4,7 +4,7 @@
 streamlit:
   image:
     repository: ghcr.io/davnish/streamlit-server
-    tag: ef57845
+    tag: 3819414
 
 inference:
   image:
