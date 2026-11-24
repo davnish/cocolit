@@ -229,3 +229,8 @@ infra/charts/cocolit/secrets-*.yaml
 # editor swap files
 *.swp
 *.swo
+
+# Third-party agent skills (installed with `npx skills add`)
+.claude/skills/
+skills-lock.json
+.taste-skill/

@@ -398,11 +398,18 @@ function initStatsMap() {
     // We don't disable zoom control here if user wants to explore
     statsMap = L.map('heatmap-map').setView(statsCenter, statsZoom);
     
-    // Esri Light Gray Canvas: keyless (CARTO basemaps now require an API key).
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
-        maxZoom: 16
-    }).addTo(statsMap);
+    // Esri Light or Dark Gray Canvas to match the page theme: keyless (CARTO
+    // basemaps now require an API key). theme.js fires 'themechange'.
+    const canvas = (theme) => L.tileLayer(
+        `https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_${theme === 'dark' ? 'Dark' : 'Light'}_Gray_Base/MapServer/tile/{z}/{y}/{x}`,
+        { attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ', maxZoom: 16 }
+    );
+    let base = canvas(document.documentElement.dataset.theme).addTo(statsMap);
+    document.addEventListener('themechange', (e) => {
+        statsMap.removeLayer(base);
+        base = canvas(e.detail).addTo(statsMap);
+        base.bringToBack();
+    });
 }
 
 // Fetch and update Stats section
