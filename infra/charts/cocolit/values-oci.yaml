@@ -1,15 +1,17 @@
 # Oracle Cloud k3s node (infra/oci): CI-built multi-arch images from GHCR,
+# tagged by short commit SHA. Keep tags quoted: an all-digit SHA (e.g. 3819414)
+# would otherwise be read as a number and break the image name.
 # no ingress/cert-manager, public access only through the Cloudflare Tunnel.
 # Deploy with scripts/deploy_oci.sh (secrets from the gitignored secrets-oci.yaml).
 streamlit:
   image:
     repository: ghcr.io/davnish/streamlit-server
-    tag: 3819414
+    tag: "3819414"
 
 inference:
   image:
     repository: ghcr.io/davnish/inference-server
-    tag: 42a70f4
+    tag: "42a70f4"
   resources:
     requests:
       cpu: 500m
