@@ -139,6 +139,13 @@ a { color: inherit; }
     transition: color 120ms var(--ease);
 }
 .brand-org:hover { color: var(--accent-text); }
+.brand-org { gap: 0.45rem; }
+/* rollingdraft's "rd." mark (its favicon), following the page theme. */
+.rd-mark { display: block; flex-shrink: 0; }
+.rd-mark-bg { fill: var(--text-main); }
+.rd-mark-fg { fill: var(--bg-color); }
+.rd-mark-dot { fill: #e8620c; }
+:root[data-theme="dark"] .rd-mark-dot { fill: #fb8b3d; }
 .brand-sep { color: var(--text-muted); font-weight: 400; }
 .highlight { color: var(--accent-text); }
 
