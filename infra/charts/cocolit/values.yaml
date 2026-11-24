@@ -107,7 +107,7 @@ ingress:
   enabled: true
   name: streamlit-ingress
   className: traefik
-  host: cocolit.prithvilabs.com
+  host: cocolit.rollingdraft.com
   serviceName: cocolit-streamlit-service
   servicePort: 80
   tlsSecret: streamlit-tls

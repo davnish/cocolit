@@ -13,7 +13,7 @@ in a few seconds, on a plain CPU.
 [![License: MIT](https://img.shields.io/badge/code-MIT-blue)](LICENSE)
 [![Model: AGPL-3.0](https://img.shields.io/badge/model-AGPL--3.0-orange)](models/README.md)
 
-**[Live demo](https://cocolit.prithvilabs.com)** ·
+**[Live demo](https://cocolit.rollingdraft.com)** ·
 **[Documentation](https://davnish.github.io/cocolit/)** ·
 **[Architecture](https://davnish.github.io/cocolit/architecture/)** ·
 **[Releases](https://github.com/davnish/cocolit/releases)**
@@ -54,7 +54,7 @@ copy on **Google Cloud Run** that costs nothing when idle.
 
 ## ✨ Try it in 30 seconds
 
-1. **Open** [cocolit.prithvilabs.com](https://cocolit.prithvilabs.com). The map
+1. **Open** [cocolit.rollingdraft.com](https://cocolit.rollingdraft.com). The map
    starts on a coconut plantation in Sri Lanka.
 2. **Press _Draw a box_** and drag over the trees. It works with a mouse or a
    finger.
@@ -250,6 +250,6 @@ Ideas or bugs? [Open an issue](https://github.com/davnish/cocolit/issues).
 <div align="center">
 
 Made by [Nischal Singh](https://www.linkedin.com/in/nischal-singh/) at
-**prithvilabs** 🌍
+**[rollingdraft](https://rollingdraft.com)** 🌍
 
 </div>

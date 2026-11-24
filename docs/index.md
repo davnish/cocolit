@@ -4,7 +4,7 @@
 [YOLO11n](https://docs.ultralytics.com/models/yolo11/) detection model
 (Ultralytics, AGPL-3.0) marks every coconut tree inside it.
 
-**Live:** [cocolit.prithvilabs.com](https://cocolit.prithvilabs.com) ·
+**Live:** [cocolit.rollingdraft.com](https://cocolit.rollingdraft.com) ·
 **Source:** [github.com/davnish/cocolit](https://github.com/davnish/cocolit)
 
 ![Cocolit: a box drawn over a plantation in Sri Lanka, with 175 coconut trees marked](assets/screenshot.jpg)

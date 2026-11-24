@@ -1,7 +1,7 @@
 {{- if .Values.cloudflared.enabled }}
 # Outbound-only Cloudflare Tunnel: no open ports or public IP needed.
 # Public hostname -> service mapping lives in the Cloudflare dashboard
-# (cocolit.prithvilabs.com -> http://{{ include "cocolit.fullname" . }}-streamlit-service:80).
+# (cocolit.rollingdraft.com -> http://{{ include "cocolit.fullname" . }}-streamlit-service:80).
 apiVersion: apps/v1
 kind: Deployment
 metadata:

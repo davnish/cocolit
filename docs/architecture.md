@@ -252,9 +252,10 @@ laptop joins the live tunnel and splits traffic between two databases.
 
 ### Edge: Cloudflare
 
-- DNS for `prithvilabs.com`; the apex and `www` redirect to
-  `cocolit.prithvilabs.com`.
-- The published tunnel route maps `cocolit.prithvilabs.com` to
+- DNS for `rollingdraft.com`. The apex is kept for the rollingdraft hub
+  site. The old `prithvilabs.com` hostnames redirect (301) to the matching
+  `rollingdraft.com` ones.
+- The published tunnel route maps `cocolit.rollingdraft.com` to
   `http://cocolit-streamlit-service.apps.svc.cluster.local:80`.
 - A WAF rate-limiting rule on `/api/inference` allows 10 requests per 10 s
   per IP, then blocks for 10 s.

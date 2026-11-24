@@ -1,6 +1,6 @@
 # Publishes Grafana through a Cloudflare Tunnel (no open ports).
 # Token secret: kubectl -n monitoring create secret generic cloudflared-token --from-literal=token=...
-# Tunnel route: grafana.prithvilabs.com -> http://kps-grafana.monitoring.svc.cluster.local:80
+# Tunnel route: grafana.rollingdraft.com -> http://kps-grafana.monitoring.svc.cluster.local:80
 apiVersion: apps/v1
 kind: Deployment
 metadata:

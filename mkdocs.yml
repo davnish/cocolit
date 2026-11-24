@@ -39,7 +39,7 @@ extra:
     - icon: fontawesome/brands/linkedin
       link: https://www.linkedin.com/in/nischal-singh/
     - icon: material/web
-      link: https://cocolit.prithvilabs.com
+      link: https://cocolit.rollingdraft.com
 
 markdown_extensions:
   - admonition
